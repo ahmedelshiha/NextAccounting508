@@ -38,6 +38,9 @@ export interface CrowdinIntegration {
   autoSyncDaily: boolean
   syncOnDeploy: boolean
   createPrs: boolean
+  lastSyncAt?: string | null
+  lastSyncStatus?: 'success' | 'failed' | 'pending' | null
+  testConnectionOk?: boolean
 }
 
 export interface TranslationStatus {

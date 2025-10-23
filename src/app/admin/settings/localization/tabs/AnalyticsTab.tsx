@@ -1,14 +1,32 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLocalizationContext } from '../LocalizationProvider'
 import { BarChart3, TrendingUp } from 'lucide-react'
 
+interface TrendsResponse {
+  labels: string[]
+  series: {
+    en: number[]
+    ar: number[]
+    hi: number[]
+    total: number[]
+  }
+  summary: {
+    current: { date: string; en: number; ar: number; hi: number; total: number }
+    previous: { date: string; en: number; ar: number; hi: number; total: number }
+    delta: { en: number; ar: number; hi: number; total: number }
+  } | null
+}
+
 export const AnalyticsTab: React.FC = () => {
   const { analyticsData, setAnalyticsData, loading, setLoading } = useLocalizationContext()
+  const [trends, setTrends] = useState<TrendsResponse | null>(null)
+  const [trendsLoading, setTrendsLoading] = useState(false)
 
   useEffect(() => {
     loadAnalytics()
+    loadTrends()
   }, [])
 
   async function loadAnalytics() {
@@ -23,6 +41,21 @@ export const AnalyticsTab: React.FC = () => {
       console.error('Failed to load analytics:', e)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function loadTrends() {
+    try {
+      setTrendsLoading(true)
+      const r = await fetch('/api/admin/user-language-analytics/trends?days=90')
+      if (r.ok) {
+        const d = await r.json()
+        setTrends(d.data)
+      }
+    } catch (e) {
+      console.error('Failed to load trends:', e)
+    } finally {
+      setTrendsLoading(false)
     }
   }
 
@@ -79,22 +112,14 @@ export const AnalyticsTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Language Distribution Pie Chart (Text-based) */}
+      {/* Language Distribution */}
       <div className="rounded-lg border bg-white p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Language Distribution</h3>
 
         {distribution.length > 0 ? (
           <div className="space-y-4">
-            {/* Distribution List */}
             {distribution.map((item, idx) => {
-              const colors = [
-                'bg-blue-500',
-                'bg-purple-500',
-                'bg-green-500',
-                'bg-orange-500',
-                'bg-red-500',
-                'bg-pink-500',
-              ]
+              const colors = ['bg-blue-500', 'bg-purple-500', 'bg-green-500', 'bg-orange-500', 'bg-red-500', 'bg-pink-500']
               const colorClass = colors[idx % colors.length]
 
               return (
@@ -110,12 +135,7 @@ export const AnalyticsTab: React.FC = () => {
                     </div>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                    <div
-                      className={`${colorClass} h-full rounded-full transition-all duration-300`}
-                      style={{
-                        width: `${parseFloat(item.percentage)}%`,
-                      }}
-                    />
+                    <div className={`${colorClass} h-full rounded-full transition-all duration-300`} style={{ width: `${parseFloat(item.percentage)}%` }} />
                   </div>
                 </div>
               )
@@ -128,7 +148,56 @@ export const AnalyticsTab: React.FC = () => {
         )}
       </div>
 
-      {/* Adoption Insights */}
+      {/* Adoption Trends */}
+      <div className="rounded-lg border bg-white p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Adoption Trend (90 days)</h3>
+        {trendsLoading ? (
+          <div className="text-gray-600 py-4">Loading trends...</div>
+        ) : trends && trends.labels.length > 1 ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(['en', 'ar', 'hi'] as const).map((lang) => {
+                const color = lang === 'en' ? 'bg-blue-500' : lang === 'ar' ? 'bg-green-500' : 'bg-purple-500'
+                const latest = trends.summary?.current?.[lang] || 0
+                const prev = trends.summary?.previous?.[lang] || 0
+                const delta = latest - prev
+                const sign = delta > 0 ? '+' : ''
+                return (
+                  <div key={lang} className="rounded-lg border bg-gray-50 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-700 uppercase">{lang}</p>
+                      <p className={`text-xs ${delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>{sign}{delta}</p>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{latest}</p>
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      {/* Simple sparkline-style bar showing last value as proportion of total */}
+                      <div className={`${color} h-full rounded-full`} style={{ width: `${trends.summary?.current?.total ? Math.min(100, Math.round((latest / trends.summary.current.total) * 100)) : 0}%` }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Timeline (labels condensed) */}
+            <div className="rounded-lg border bg-gray-50 p-4">
+              <p className="text-xs text-gray-600">{trends.labels[0]} → {trends.labels[trends.labels.length - 1]}</p>
+              <div className="mt-3 grid grid-cols-12 gap-2">
+                {trends.series.total.slice(-12).map((val, idx) => {
+                  const max = Math.max(...trends.series.total.slice(-12)) || 1
+                  const height = Math.max(6, Math.round((val / max) * 36))
+                  return <div key={idx} className="bg-blue-400 rounded" style={{ height: `${height}px` }} />
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-lg border bg-gray-50 p-6 text-center">
+            <p className="text-gray-600">Insufficient data for trends</p>
+          </div>
+        )}
+      </div>
+
+      {/* Key Insights */}
       <div className="rounded-lg border bg-white p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Insights</h3>
         <div className="space-y-4">
@@ -138,9 +207,7 @@ export const AnalyticsTab: React.FC = () => {
                 <div className="text-2xl">📈</div>
                 <div>
                   <p className="font-medium text-gray-900">Primary Language</p>
-                  <p className="text-sm text-gray-700">
-                    {distribution[0]?.language?.toUpperCase()} is used by {distribution[0]?.count} users ({parseFloat(distribution[0]?.percentage).toFixed(1)}% of total)
-                  </p>
+                  <p className="text-sm text-gray-700">{distribution[0]?.language?.toUpperCase()} is used by {distribution[0]?.count} users ({parseFloat(distribution[0]?.percentage).toFixed(1)}% of total)</p>
                 </div>
               </div>
 
@@ -149,9 +216,7 @@ export const AnalyticsTab: React.FC = () => {
                   <div className="text-2xl">🌐</div>
                   <div>
                     <p className="font-medium text-gray-900">Multi-Language Adoption</p>
-                    <p className="text-sm text-gray-700">
-                      Your platform is actively used in {distribution.length} languages
-                    </p>
+                    <p className="text-sm text-gray-700">Your platform is actively used in {distribution.length} languages</p>
                   </div>
                 </div>
               )}
@@ -160,21 +225,12 @@ export const AnalyticsTab: React.FC = () => {
                 <div className="text-2xl">👥</div>
                 <div>
                   <p className="font-medium text-gray-900">User Base</p>
-                  <p className="text-sm text-gray-700">
-                    {data?.totalUsers || 0} users have set their language preference
-                  </p>
+                  <p className="text-sm text-gray-700">{data?.totalUsers || 0} users have set their language preference</p>
                 </div>
               </div>
             </>
           )}
         </div>
-      </div>
-
-      {/* Coming Soon Features */}
-      <div className="rounded-lg border bg-blue-50 p-4">
-        <p className="text-sm text-blue-900">
-          💡 <strong>Coming soon:</strong> Adoption trends over time, new user preferences, device/OS breakdown, geographic heatmaps, and data export for BI tools
-        </p>
       </div>
     </div>
   )

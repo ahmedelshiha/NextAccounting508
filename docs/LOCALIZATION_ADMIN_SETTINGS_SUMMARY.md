@@ -130,7 +130,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌──────────────────────────────────────┐
 │ Organization Settings                │
-├──────────────────────────────────────┤
+├─────────────────────────��────────────┤
 │ Default Language: [English ▼]         │
 │ Fallback Language: [English ▼]        │
 │                                      │
@@ -187,7 +187,7 @@ Heatmap: [Language usage over last 30 days]
 │ [Line chart showing user growth]      │
 │                                       │
 │ [Export User Preferences] [Analyze]    │
-└────────────────────────────────────────┘
+└────────────────────────��───────────────┘
 ```
 
 **API Endpoints:**
@@ -218,7 +218,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌─────────────────────────────────────┐
 │ Regional Formats                    │
-├─────────────────────────────────────┤
+├───────────────────────���─────────────┤
 │ English (en-US)                    │
 │ ├─ Date: MM/DD/YYYY               │
 │ ├─ Time: 12:34 PM                 │
@@ -493,7 +493,7 @@ Heatmap: [Language usage over last 30 days]
 ### Phase 3: Advanced Features (Week 4)
 - [x] Implement IntegrationTab with sync controls
 - [x] Implement TranslationsTab with coverage dashboard
-- [ ] Implement AnalyticsTab with trends
+- [x] Implement AnalyticsTab with trends
 - [x] Implement DiscoveryTab with auto-audit
 
 ### Phase 4: Polish & Testing (Week 5)
@@ -662,6 +662,14 @@ CREATE TABLE LanguageAnalytics (
     - src/app/admin/settings/localization/hooks/ (new): useLanguages.ts, useRegionalFormats.ts, useCrowdinIntegration.ts, useTranslationStatus.ts, useLanguageAnalytics.ts, index.ts
   - Testing: Manual verification of each tab happy paths; import/export and analytics endpoints exercised. No regressions observed.
   - Next: Phase 3 remaining items – Analytics trends endpoints, Crowdin sync/logs/health, Translation timeline/velocity/report exports; Phase 4 tests and accessibility.
+
+- ✅ 2025-10-23: Implemented AnalyticsTab trends (adoption over time).
+  - Summary: Added trends API and UI. The Analytics tab now fetches and displays 90-day adoption trends per language with deltas and a compact timeline.
+  - Files Modified:
+    - src/app/api/admin/user-language-analytics/trends/route.ts (new)
+    - src/app/admin/settings/localization/tabs/AnalyticsTab.tsx (enhanced with trends UI)
+    - src/app/admin/settings/localization/types.ts (CrowdinIntegration optional status fields)
+  - Testing: Verified API returns data when TranslationMetrics exist; UI gracefully shows "Insufficient data" when empty. Checked permissions and error handling.
 
 ## 📝 Notes
 
