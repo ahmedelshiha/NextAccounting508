@@ -1,3 +1,5 @@
+'use client'
+
 import { createContext, useContext } from 'react'
 import enTranslations from '@/app/locales/en.json'
 import { flattenTranslations } from '@/lib/translation-utils'
