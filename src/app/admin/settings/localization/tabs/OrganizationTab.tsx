@@ -197,6 +197,79 @@ export const OrganizationTab: React.FC = () => {
             </div>
           </div>
 
+          {/* Real-Time Preview Section */}
+          <div className="rounded-lg border bg-white p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Live Preview</h3>
+            <p className="text-sm text-gray-600 mb-4">See how your settings affect the user experience</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Language Switcher Preview */}
+              <div className="rounded-lg border bg-gray-50 p-4">
+                <p className="text-xs font-semibold text-gray-600 uppercase mb-3">Language Switcher</p>
+                {orgSettings.showLanguageSwitcher ? (
+                  <div className="flex gap-2 flex-wrap">
+                    {languages.filter(l => l.enabled).slice(0, 3).map(lang => (
+                      <button
+                        key={lang.code}
+                        className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                          lang.code === orgSettings.defaultLanguage
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        {lang.flag} {lang.code.toUpperCase()}
+                      </button>
+                    ))}
+                    {languages.filter(l => l.enabled).length > 3 && (
+                      <button className="px-3 py-2 rounded text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-100">
+                        +{languages.filter(l => l.enabled).length - 3}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">Language switcher hidden</p>
+                )}
+              </div>
+
+              {/* Default Language Preview */}
+              <div className="rounded-lg border bg-gray-50 p-4">
+                <p className="text-xs font-semibold text-gray-600 uppercase mb-3">New User Default</p>
+                <div className="bg-white rounded border border-gray-300 px-3 py-2">
+                  <p className="text-sm text-gray-600">
+                    {languages.find(l => l.code === orgSettings.defaultLanguage)?.flag}{' '}
+                    {languages.find(l => l.code === orgSettings.defaultLanguage)?.name}
+                  </p>
+                </div>
+              </div>
+
+              {/* Missing Translation Behavior Preview */}
+              <div className="rounded-lg border bg-gray-50 p-4">
+                <p className="text-xs font-semibold text-gray-600 uppercase mb-3">Missing Translation</p>
+                <div className="bg-white rounded border border-gray-300 px-3 py-2">
+                  <code className="text-xs text-gray-600">
+                    {orgSettings.missingTranslationBehavior === 'show-key' && 'hero.headline'}
+                    {orgSettings.missingTranslationBehavior === 'show-fallback' && '[English translation here]'}
+                    {orgSettings.missingTranslationBehavior === 'show-empty' && '[empty]'}
+                  </code>
+                </div>
+              </div>
+
+              {/* RTL Mode Preview */}
+              <div className="rounded-lg border bg-gray-50 p-4">
+                <p className="text-xs font-semibold text-gray-600 uppercase mb-3">RTL Languages</p>
+                {orgSettings.enableRtlSupport ? (
+                  <div
+                    className="bg-white rounded border border-gray-300 px-3 py-3 text-right"
+                    dir="rtl"
+                  >
+                    <p className="text-sm text-gray-700">مرحبا بالعالم</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">RTL support disabled</p>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-end">
             <button
               onClick={saveOrgSettings}
