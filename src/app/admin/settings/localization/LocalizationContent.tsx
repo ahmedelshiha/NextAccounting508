@@ -271,6 +271,89 @@ export default function LocalizationContent() {
     }
   }
 
+  async function saveRegionalFormats() {
+    setSaving(true)
+    setError(null)
+    try {
+      const promises = Object.entries(regionalFormats).map(([code, format]) =>
+        fetch('/api/admin/regional-formats', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            language: code,
+            ...format,
+          }),
+        })
+      )
+
+      const responses = await Promise.all(promises)
+      for (const r of responses) {
+        if (!r.ok) {
+          const d = await r.json()
+          throw new Error(d?.error || 'Failed to save regional formats')
+        }
+      }
+
+      toast.success('Regional formats saved')
+      setSaved(true)
+      setRegionalFormatsEdited(false)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (e: any) {
+      setError(e?.message || 'Failed to save regional formats')
+      toast.error(e?.message || 'Failed to save formats')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function saveCrowdinIntegration() {
+    setSaving(true)
+    setError(null)
+    try {
+      const r = await fetch('/api/admin/crowdin-integration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(crowdinIntegration),
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d?.error || 'Failed to save Crowdin integration')
+      toast.success('Crowdin integration saved')
+      setSaved(true)
+      await loadCrowdinIntegration()
+      setTimeout(() => setSaved(false), 3000)
+    } catch (e: any) {
+      setError(e?.message || 'Failed to save Crowdin integration')
+      toast.error(e?.message || 'Failed to save integration')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function testCrowdinConnection() {
+    setCrowdinTestLoading(true)
+    setCrowdinTestResult(null)
+    try {
+      const r = await fetch('/api/admin/crowdin-integration', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: crowdinIntegration.projectId,
+          apiToken: crowdinIntegration.apiToken,
+        }),
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d?.error || 'Connection test failed')
+      setCrowdinTestResult({ success: true, message: 'Connection successful!' })
+      toast.success('Crowdin connection test passed')
+    } catch (e: any) {
+      const message = e?.message || 'Connection test failed'
+      setCrowdinTestResult({ success: false, message })
+      toast.error(message)
+    } finally {
+      setCrowdinTestLoading(false)
+    }
+  }
+
   async function createLanguage() {
     setSaving(true)
     setError(null)
