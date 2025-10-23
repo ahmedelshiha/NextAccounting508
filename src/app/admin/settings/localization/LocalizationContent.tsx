@@ -456,6 +456,14 @@ export default function LocalizationContent() {
     }
   }
 
+  const handleRegionalFormatChange = useCallback((code: string, format: RegionalFormat) => {
+    setRegionalFormats(p => ({
+      ...p,
+      [code]: format,
+    }))
+    setRegionalFormatsEdited(true)
+  }, [])
+
   const body = useMemo(() => {
     if (loading) return <div className="text-gray-600 py-8 text-center">Loading...</div>
 
