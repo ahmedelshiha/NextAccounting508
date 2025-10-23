@@ -1046,12 +1046,12 @@ export default function LocalizationContent() {
               <SettingsSection title="Translation Platform Integration" description="Connect to translation services">
                 <div className="rounded-lg border bg-white p-4">
                   <h4 className="font-semibold text-gray-900 mb-4">Crowdin Integration</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <TextField
                         label="Project ID"
-                        value=""
-                        onChange={() => {}}
+                        value={crowdinIntegration.projectId}
+                        onChange={v => setCrowdinIntegration(s => ({ ...s, projectId: v }))}
                         placeholder="Your Crowdin project ID"
                       />
                       <p className="text-xs text-gray-600 mt-1">Found in Crowdin project settings</p>
@@ -1059,19 +1059,33 @@ export default function LocalizationContent() {
                     <div>
                       <TextField
                         label="API Token"
-                        value=""
-                        onChange={() => {}}
+                        value={crowdinIntegration.apiToken}
+                        onChange={v => setCrowdinIntegration(s => ({ ...s, apiToken: v }))}
                         placeholder="Your Crowdin API token"
+                        type="password"
                       />
                       <p className="text-xs text-gray-600 mt-1">Generate from Crowdin account settings</p>
                     </div>
                   </div>
-                  <div className="mt-4 flex gap-3">
-                    <button className="px-4 py-2 rounded-md text-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
-                      Test Connection
+                  {crowdinTestResult && (
+                    <div className={`rounded-lg p-3 mb-4 ${crowdinTestResult.success ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
+                      <p className="text-sm">{crowdinTestResult.message}</p>
+                    </div>
+                  )}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={testCrowdinConnection}
+                      disabled={!crowdinIntegration.projectId || !crowdinIntegration.apiToken || crowdinTestLoading || saving}
+                      className="px-4 py-2 rounded-md text-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      {crowdinTestLoading ? 'Testing...' : 'Test Connection'}
                     </button>
-                    <button className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700">
-                      Save Integration
+                    <button
+                      onClick={saveCrowdinIntegration}
+                      disabled={!crowdinIntegration.projectId || !crowdinIntegration.apiToken || saving}
+                      className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+                    >
+                      {saving ? 'Saving...' : 'Save Integration'}
                     </button>
                   </div>
                 </div>
@@ -1080,15 +1094,30 @@ export default function LocalizationContent() {
                   <h4 className="font-semibold text-blue-900 mb-2">Sync Options</h4>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3">
-                      <input type="checkbox" className="w-4 h-4 text-blue-600 rounded" defaultChecked />
+                      <input
+                        type="checkbox"
+                        checked={crowdinIntegration.autoSyncDaily}
+                        onChange={e => setCrowdinIntegration(s => ({ ...s, autoSyncDaily: e.target.checked }))}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
                       <span className="text-sm text-blue-800">Auto-sync translations daily</span>
                     </label>
                     <label className="flex items-center gap-3">
-                      <input type="checkbox" className="w-4 h-4 text-blue-600 rounded" />
+                      <input
+                        type="checkbox"
+                        checked={crowdinIntegration.syncOnDeploy}
+                        onChange={e => setCrowdinIntegration(s => ({ ...s, syncOnDeploy: e.target.checked }))}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
                       <span className="text-sm text-blue-800">Sync on code deployment</span>
                     </label>
                     <label className="flex items-center gap-3">
-                      <input type="checkbox" className="w-4 h-4 text-blue-600 rounded" defaultChecked />
+                      <input
+                        type="checkbox"
+                        checked={crowdinIntegration.createPrs}
+                        onChange={e => setCrowdinIntegration(s => ({ ...s, createPrs: e.target.checked }))}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
                       <span className="text-sm text-blue-800">Create PRs for translations</span>
                     </label>
                   </div>
