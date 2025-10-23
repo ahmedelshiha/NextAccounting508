@@ -22,9 +22,17 @@ interface AnalyticsResponse {
  * GET /api/admin/user-language-analytics
  * Fetch user language distribution analytics
  */
-export const GET = withTenantContext(async (request: NextRequest, context: any) => {
+export const GET = withTenantContext(async () => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
 
     // Get all users for this tenant with their language preferences
     const users = await prisma.userProfile.findMany({
