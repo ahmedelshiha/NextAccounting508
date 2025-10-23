@@ -130,7 +130,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌──────────────────────────────────────┐
 │ Organization Settings                │
-├─────��───────────────────��────────────┤
+├─────────────────────────��────────────┤
 │ Default Language: [English ▼]         │
 │ Fallback Language: [English ▼]        │
 │                                      │
@@ -187,7 +187,7 @@ Heatmap: [Language usage over last 30 days]
 │ [Line chart showing user growth]      │
 │                                       │
 │ [Export User Preferences] [Analyze]    │
-└───��────────────────────��───────────────┘
+└────────────────────────��───────────────┘
 ```
 
 **API Endpoints:**
@@ -218,7 +218,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌─────────────────────────────────────┐
 │ Regional Formats                    │
-├─���─────────────────────���─────────────┤
+├───────────────────────���─────────────┤
 │ English (en-US)                    │
 │ ├─ Date: MM/DD/YYYY               │
 │ ├─ Time: 12:34 PM                 │
@@ -279,7 +279,7 @@ Heatmap: [Language usage over last 30 days]
 │ ● Weekly auto-sync (Monday 2 AM)    │
 │ ○ Real-time (webhook)              │
 │                                     │
-│ [Sync Now] [View Last Sync: 2h ago] ��
+│ [Sync Now] [View Last Sync: 2h ago] │
 │                                     │
 │ Project Health:                     │
 │ English (base):    100%             │
@@ -689,6 +689,13 @@ CREATE TABLE LanguageAnalytics (
     - src/app/api/admin/translations/status/route.ts
     - src/app/api/admin/user-language-analytics/route.ts
   - Testing: Static lint errors addressed locally. Please re-run CI/Build to confirm and report any remaining issues.
+
+- ✅ 2025-10-23T02:15:35Z: Addressed TypeScript compile errors from recent CI run.
+  - Summary: Adjusted Localization context setter types to accept updater functions (React setState pattern) to resolve TS2345 errors in IntegrationTab and OrganizationTab. Also replaced an incorrect permission constant (ORG_SETTINGS_MANAGE -> ORG_SETTINGS_EDIT) to match available permissions.
+  - Files Modified:
+    - src/app/admin/settings/localization/types.ts
+    - src/app/api/admin/org-settings/localization/route.ts
+  - Testing: Type errors fixed in source. Recommend re-running CI to verify full typecheck and build.
 
 ## 📝 Notes
 
