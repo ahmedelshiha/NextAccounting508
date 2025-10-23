@@ -57,7 +57,7 @@ export function SelectField({
         value={value}
         onChange={(e)=>onChange(e.target.value)}
         disabled={disabled}
-        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
+        className="block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
       >
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
