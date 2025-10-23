@@ -40,11 +40,11 @@ const _api_POST = async (request: NextRequest) => {
 
     // Provide defaults for optional fields
     const normalizedPayload = {
-      ts: payload.ts || Date.now(),
-      path: payload.path || 'unknown',
-      userAgent: payload.userAgent || 'unknown',
-      type: payload.type || 'unknown',
       ...payload,
+      ts: payload.ts ?? Date.now(),
+      path: payload.path ?? 'unknown',
+      userAgent: payload.userAgent ?? 'unknown',
+      type: payload.type ?? 'unknown',
     }
 
     // In development, just log the metrics
