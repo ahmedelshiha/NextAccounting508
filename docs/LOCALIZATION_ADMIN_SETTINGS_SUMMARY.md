@@ -95,7 +95,7 @@ src/app/admin/settings/localization/
 │ en   │ English   │ ✓ On  │ ⭐      │
 │ ar   │ العربي��   │ ✓ On  │ ⭐      │
 │ fr   │ Français  │ ✗ Off │         │
-└─────┴──────────┴────���───┴─────────┘
+└─────┴──────────┴────����───┴─────────┘
 
 Heatmap: [Language usage over last 30 days]
 ```
@@ -186,7 +186,7 @@ Heatmap: [Language usage over last 30 days]
 │ 30-Day Adoption Trend:                │
 │ [Line chart showing user growth]      │
 │                                       │
-│ [Export User Preferences] [Analyze]    │
+�� [Export User Preferences] [Analyze]    │
 └────────────────────────��───────────────┘
 ```
 
@@ -249,6 +249,17 @@ Heatmap: [Language usage over last 30 days]
 ---
 
 ## 📜 Action Log
+
+- ✅ 2025-10-26: Implemented Crowdin integration logs endpoint and enhanced IntegrationTab UI.
+  - Summary: Added GET /api/admin/crowdin-integration/logs endpoint for sync history retrieval. Enhanced IntegrationTab with:
+    1. Project Health section showing Crowdin completion % per language
+    2. Expandable Sync Logs section showing recent sync history with status
+    3. Fixed logsLoading state management for proper loading indicators
+  - Files Modified/Added:
+    - src/app/api/admin/crowdin-integration/logs/route.ts (new)
+    - src/app/admin/settings/localization/tabs/IntegrationTab.tsx (enhanced with health and logs UI)
+    - src/app/admin/settings/localization/__tests__/IntegrationTab.test.tsx (updated test mocks for new endpoints)
+  - Testing: All IntegrationTab tests updated to properly mock project-health and logs endpoints. Manual verification: UI displays project health with completion bars and expandable sync logs section.
 
 - ✅ 2025-10-25: Implemented Regional Formats helper endpoints (templates, validate, import-cldr).
   - Summary: Added templates, validate, and CLDR import simulation endpoints and fixed withTenantContext import on the main regional-formats route. These power the RegionalFormatsTab UI for template selection, validation before save, and quick CLDR-based population.
@@ -359,7 +370,7 @@ Heatmap: [Language usage over last 30 days]
 │                                      │
 │ [View All Missing] [Assign Tasks]    │
 │ [Generate Report] [Set Priorities]   │
-└───────────────────────────────────────┘
+└───���───────────────────────────────────┘
 ```
 
 **API Endpoints:**
@@ -410,7 +421,7 @@ Heatmap: [Language usage over last 30 days]
 │ │ English ╱  ╲    ╱  ╲         │   │
 │ │        ╱    ╲  ╱    ╲        │   │
 │ ���      Arabic ╲╱ ╱ Hindi      │   │
-│ └──────────────────────────────┘   │
+│ └───────────────────���──────────┘   │
 │                                     │
 │ New User Preferences:               │
 │ English: 50% (↑ from 45%)          │
