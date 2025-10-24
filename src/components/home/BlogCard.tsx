@@ -69,7 +69,7 @@ export default function BlogCard({ post }: { post: BlogPost }) {
           <Button variant="ghost" size="sm" className="transition-colors p-0 hover:text-blue-600" asChild>
             <Link href={`/blog/${post.slug}`} aria-label={`Read more: ${post.title}`}>
               Read More
-              <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="ml-1 h-3 w-3 transition-transform" />
             </Link>
           </Button>
         </div>
