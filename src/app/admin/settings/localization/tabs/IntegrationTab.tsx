@@ -49,10 +49,15 @@ export const IntegrationTab: React.FC = () => {
   async function loadData() {
     try {
       setLoading(true)
-      await loadCrowdinIntegration()
-      await loadProjectHealth()
-      await loadSyncLogs()
-      await loadWebhookConfig()
+      // Load all data with individual error handling - don't let one failure block others
+      await Promise.allSettled([
+        loadCrowdinIntegration(),
+        loadProjectHealth(),
+        loadSyncLogs(),
+        loadWebhookConfig(),
+      ])
+    } catch (e) {
+      console.error('Failed to load integration data:', e)
     } finally {
       setLoading(false)
     }
