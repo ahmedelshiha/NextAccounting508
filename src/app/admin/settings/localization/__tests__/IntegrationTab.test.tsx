@@ -35,6 +35,10 @@ vi.mock('@/components/admin/settings/FormField', () => ({
   ),
 }))
 
+vi.mock('lucide-react', () => ({
+  ChevronDown: () => <span>ChevronDown</span>,
+}))
+
 describe('IntegrationTab', () => {
   beforeEach(() => {
     global.fetch = vi.fn()
@@ -65,12 +69,25 @@ describe('IntegrationTab', () => {
       createPrs: true,
     }
 
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ data: mockSettings }),
-      } as Response)
-    )
+    global.fetch = vi.fn()
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: mockSettings }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
+        } as Response)
+      )
 
     render(
       <LocalizationProvider>
@@ -105,6 +122,18 @@ describe('IntegrationTab', () => {
       .mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
           json: () => Promise.resolve({ success: true, message: 'Connection successful' }),
         } as Response)
       )
@@ -119,7 +148,7 @@ describe('IntegrationTab', () => {
       expect(screen.queryByText(/Loading integration/i)).not.toBeInTheDocument()
     })
 
-    const testButton = screen.getByRole('button', { name: /Test Connection/i })
+    const testButton = screen.getAllByRole('button', { name: /Test Connection/i })[0]
     await user.click(testButton)
 
     await waitFor(() => {
@@ -152,6 +181,18 @@ describe('IntegrationTab', () => {
       .mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
           json: () => Promise.resolve({ success: true }),
         } as Response)
       )
@@ -166,7 +207,7 @@ describe('IntegrationTab', () => {
       expect(screen.queryByText(/Loading integration/i)).not.toBeInTheDocument()
     })
 
-    const saveButton = screen.getByRole('button', { name: /Save/i })
+    const saveButton = screen.getByRole('button', { name: /Save Integration/i })
     await user.click(saveButton)
 
     await waitFor(() => {
@@ -201,7 +242,37 @@ describe('IntegrationTab', () => {
       .mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
           json: () => Promise.resolve({ success: true, syncId: 'sync-123' }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: mockSettings }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
         } as Response)
       )
 
@@ -238,12 +309,25 @@ describe('IntegrationTab', () => {
       createPrs: true,
     }
 
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ data: mockSettings }),
-      } as Response)
-    )
+    global.fetch = vi.fn()
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: mockSettings }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
+        } as Response)
+      )
 
     render(
       <LocalizationProvider>
@@ -270,12 +354,25 @@ describe('IntegrationTab', () => {
       lastSyncStatus: 'success' as const,
     }
 
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ data: mockSettings }),
-      } as Response)
-    )
+    global.fetch = vi.fn()
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: mockSettings }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
+        } as Response)
+      )
 
     render(
       <LocalizationProvider>
@@ -303,6 +400,18 @@ describe('IntegrationTab', () => {
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ data: mockSettings }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
         } as Response)
       )
       .mockImplementationOnce(() =>

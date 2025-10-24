@@ -6,14 +6,35 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { toast } from 'sonner'
 import { TextField } from '@/components/admin/settings/FormField'
+import { ChevronDown } from 'lucide-react'
+
+interface ProjectHealth {
+  language: string
+  completion: number
+}
+
+interface SyncLog {
+  id: string
+  syncedAt: Date | string
+  status: 'success' | 'failed' | 'partial'
+  keysAdded?: number
+  keysUpdated?: number
+  error?: string
+}
 
 export const IntegrationTab: React.FC = () => {
   const { crowdinIntegration, setCrowdinIntegration, loading, setLoading, saving, setSaving } = useLocalizationContext()
   const [crowdinTestLoading, setCrowdinTestLoading] = useState(false)
   const [crowdinTestResult, setCrowdinTestResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [projectHealth, setProjectHealth] = useState<ProjectHealth[]>([])
+  const [syncLogs, setSyncLogs] = useState<SyncLog[]>([])
+  const [showSyncLogs, setShowSyncLogs] = useState(false)
+  const [logsLoading, setLogsLoading] = useState(false)
 
   useEffect(() => {
     loadCrowdinIntegration()
+    loadProjectHealth()
+    loadSyncLogs()
   }, [])
 
   async function loadCrowdinIntegration() {
@@ -36,6 +57,34 @@ export const IntegrationTab: React.FC = () => {
       console.error('Failed to load Crowdin integration:', e)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function loadProjectHealth() {
+    try {
+      const r = await fetch('/api/admin/crowdin-integration/project-health')
+      if (r.ok) {
+        const d = await r.json()
+        setProjectHealth(d.data || [])
+      }
+    } catch (e) {
+      console.error('Failed to load project health:', e)
+    }
+  }
+
+  async function loadSyncLogs() {
+    try {
+      setLogsLoading(true)
+      const r = await fetch('/api/admin/crowdin-integration/logs?limit=10')
+      if (r.ok) {
+        const d = await r.json()
+        setSyncLogs(d.data?.logs || [])
+      }
+    } catch (e) {
+      console.error('Failed to load sync logs:', e)
+      setSyncLogs([])
+    } finally {
+      setLogsLoading(false)
     }
   }
 
@@ -90,7 +139,7 @@ export const IntegrationTab: React.FC = () => {
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to run sync')
       toast.success('Sync started successfully')
-      await loadCrowdinIntegration()
+      await Promise.all([loadCrowdinIntegration(), loadProjectHealth(), loadSyncLogs()])
     } catch (e: any) {
       toast.error(e?.message || 'Failed to run sync')
     } finally {
@@ -224,6 +273,76 @@ export const IntegrationTab: React.FC = () => {
               {crowdinTestLoading ? 'Syncing...' : '⚡ Sync Now'}
             </button>
           </div>
+        </div>
+
+        {/* Project Health Section */}
+        {projectHealth.length > 0 && (
+          <div className="rounded-lg border bg-white p-6">
+            <h4 className="font-semibold text-gray-900 mb-4">Project Health</h4>
+            <div className="space-y-3">
+              {projectHealth.map(lang => (
+                <div key={lang.language} className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">{lang.language.toUpperCase()}</span>
+                  <div className="flex items-center gap-2 flex-1 ml-4">
+                    <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-green-500 h-full rounded-full transition-all"
+                        style={{ width: `${lang.completion}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">{lang.completion}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Sync Logs Section */}
+        <div className="rounded-lg border bg-white p-6">
+          <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => setShowSyncLogs(!showSyncLogs)}>
+            <h4 className="font-semibold text-gray-900">Sync Logs</h4>
+            <button
+              className="text-gray-600 hover:text-gray-900 transition-transform"
+              style={{ transform: showSyncLogs ? 'rotate(180deg)' : 'rotate(0deg)' }}
+            >
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          </div>
+
+          {showSyncLogs && (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {logsLoading ? (
+                <p className="text-sm text-gray-600 py-4 text-center">Loading logs...</p>
+              ) : syncLogs.length > 0 ? (
+                syncLogs.map(log => (
+                  <div key={log.id} className="rounded-lg border bg-gray-50 p-3 text-sm">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-gray-900">
+                        {new Date(log.syncedAt).toLocaleString()}
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          log.status === 'success'
+                            ? 'bg-green-100 text-green-800'
+                            : log.status === 'failed'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
+                        {log.status.charAt(0).toUpperCase() + log.status.slice(1)}
+                      </span>
+                    </div>
+                    {log.keysAdded && <p className="text-gray-600">Keys added: {log.keysAdded}</p>}
+                    {log.keysUpdated && <p className="text-gray-600">Keys updated: {log.keysUpdated}</p>}
+                    {log.error && <p className="text-red-600 text-xs">{log.error}</p>}
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-600 py-4 text-center">No sync logs yet</p>
+              )}
+            </div>
+          )}
         </div>
       </PermissionGate>
     </div>
