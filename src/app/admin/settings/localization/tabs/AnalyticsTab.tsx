@@ -25,9 +25,18 @@ export const AnalyticsTab: React.FC = () => {
   const [trendsLoading, setTrendsLoading] = useState(false)
 
   useEffect(() => {
-    loadAnalytics()
-    loadTrends()
+    loadAllData()
   }, [])
+
+  async function loadAllData() {
+    try {
+      setLoading(true)
+      await loadAnalytics()
+      await loadTrends()
+    } finally {
+      setLoading(false)
+    }
+  }
 
   async function loadAnalytics() {
     try {
