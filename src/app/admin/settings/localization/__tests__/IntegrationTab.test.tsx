@@ -181,6 +181,18 @@ describe('IntegrationTab', () => {
       .mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
           json: () => Promise.resolve({ success: true }),
         } as Response)
       )
@@ -195,7 +207,7 @@ describe('IntegrationTab', () => {
       expect(screen.queryByText(/Loading integration/i)).not.toBeInTheDocument()
     })
 
-    const saveButton = screen.getByRole('button', { name: /Save/i })
+    const saveButton = screen.getByRole('button', { name: /Save Integration/i })
     await user.click(saveButton)
 
     await waitFor(() => {
