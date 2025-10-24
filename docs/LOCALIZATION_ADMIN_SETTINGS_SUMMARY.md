@@ -231,7 +231,7 @@ Heatmap: [Language usage over last 30 days]
 │ عربي (ar-AE)                       │
 │ ├─ Date: DD/MM/YYYY               │
 │ ├─ Time: 14:35                    │
-│ ├─ Currency: د.إ AED             │
+│ ├─ Currency: د.إ AED             ���
 │ ├─ Decimal: ,                     │
 │ └─ Thousands: .                   │
 │ Preview: د.إ 1.234,56 في 21/10   │
@@ -245,6 +245,20 @@ Heatmap: [Language usage over last 30 days]
 - **NEW: `GET /api/admin/regional-formats/templates`** - preset library
 - **NEW: `POST /api/admin/regional-formats/validate`** - verify format
 - **NEW: `POST /api/admin/regional-formats/import-cldr`** - auto-populate
+
+---
+
+## 📜 Action Log
+
+- ✅ 2025-10-25: Implemented Regional Formats helper endpoints (templates, validate, import-cldr).
+  - Summary: Added templates, validate, and CLDR import simulation endpoints and fixed withTenantContext import on the main regional-formats route. These power the RegionalFormatsTab UI for template selection, validation before save, and quick CLDR-based population.
+  - Files Modified/Added:
+    - src/app/api/admin/regional-formats/route.ts (edited)
+    - src/app/api/admin/regional-formats/templates/route.ts (new)
+    - src/app/api/admin/regional-formats/validate/route.ts (new)
+    - src/app/api/admin/regional-formats/import-cldr/route.ts (new)
+  - Testing: Manual checks: GET /api/admin/regional-formats/templates returns templates; POST /validate responds with validation errors for bad payloads; POST /import-cldr returns CLDR sample for supported codes. Permission checks require LANGUAGES_VIEW or MANAGE as appropriate.
+
 
 ---
 
@@ -384,7 +398,7 @@ Heatmap: [Language usage over last 30 days]
 │                                     │
 │ Language Distribution:              │
 │ ┌──────────────────────────────┐   │
-│ │ English: 45%                 │   ���
+│ │ English: 45%                 │   │
 │ │ Arabic: 35%                  │   │
 │ │ Hindi: 15%                   │   │
 │ │ Other: 5%                    │   │
@@ -437,7 +451,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌─────────────────────────────────────┐
 │ Key Discovery                       │
-├────���──────────────────────────��─────┤
+├───��───────────────────────────��─────┤
 │ [Run Discovery Audit Now]           │
 │ Last Audit: 2 hours ago (1,247 keys)│
 │                                     │
