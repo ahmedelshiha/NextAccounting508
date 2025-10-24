@@ -22,6 +22,14 @@ interface SyncLog {
   error?: string
 }
 
+interface WebhookConfig {
+  webhookUrl: string
+  isActive: boolean
+  events: string[]
+  lastDelivery?: string
+  deliveriesCount: number
+}
+
 export const IntegrationTab: React.FC = () => {
   const { crowdinIntegration, setCrowdinIntegration, loading, setLoading, saving, setSaving } = useLocalizationContext()
   const [crowdinTestLoading, setCrowdinTestLoading] = useState(false)
