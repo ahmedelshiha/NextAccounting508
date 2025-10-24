@@ -2,6 +2,7 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import prisma from '@/lib/prisma'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 export const dynamic = 'force-dynamic'
 
