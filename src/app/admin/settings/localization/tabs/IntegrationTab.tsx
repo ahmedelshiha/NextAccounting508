@@ -83,6 +83,21 @@ export const IntegrationTab: React.FC = () => {
     }
   }
 
+  async function manualSync() {
+    try {
+      setCrowdinTestLoading(true)
+      const r = await fetch('/api/admin/crowdin-integration/sync', { method: 'POST' })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d?.error || 'Failed to run sync')
+      toast.success('Sync started successfully')
+      await loadCrowdinIntegration()
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to run sync')
+    } finally {
+      setCrowdinTestLoading(false)
+    }
+  }
+
   if (loading) {
     return <div className="text-gray-600 py-8 text-center">Loading integration settings...</div>
   }
@@ -202,7 +217,7 @@ export const IntegrationTab: React.FC = () => {
           {/* Manual Sync Button */}
           <div className="mt-4">
             <button
-              onClick={testCrowdinConnection}
+              onClick={manualSync}
               disabled={!crowdinIntegration.projectId || !crowdinIntegration.apiToken || crowdinTestLoading || saving}
               className="w-full px-4 py-2 rounded-md text-sm text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 font-medium"
             >

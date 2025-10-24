@@ -231,7 +231,7 @@ Heatmap: [Language usage over last 30 days]
 │ عربي (ar-AE)                       │
 │ ├─ Date: DD/MM/YYYY               │
 │ ├─ Time: 14:35                    │
-│ ├─ Currency: د.إ AED             │
+│ ├─ Currency: د.إ AED             ���
 │ ├─ Decimal: ,                     │
 │ └─ Thousands: .                   │
 │ Preview: د.إ 1.234,56 في 21/10   │
@@ -245,6 +245,20 @@ Heatmap: [Language usage over last 30 days]
 - **NEW: `GET /api/admin/regional-formats/templates`** - preset library
 - **NEW: `POST /api/admin/regional-formats/validate`** - verify format
 - **NEW: `POST /api/admin/regional-formats/import-cldr`** - auto-populate
+
+---
+
+## 📜 Action Log
+
+- ✅ 2025-10-25: Implemented Regional Formats helper endpoints (templates, validate, import-cldr).
+  - Summary: Added templates, validate, and CLDR import simulation endpoints and fixed withTenantContext import on the main regional-formats route. These power the RegionalFormatsTab UI for template selection, validation before save, and quick CLDR-based population.
+  - Files Modified/Added:
+    - src/app/api/admin/regional-formats/route.ts (edited)
+    - src/app/api/admin/regional-formats/templates/route.ts (new)
+    - src/app/api/admin/regional-formats/validate/route.ts (new)
+    - src/app/api/admin/regional-formats/import-cldr/route.ts (new)
+  - Testing: Manual checks: GET /api/admin/regional-formats/templates returns templates; POST /validate responds with validation errors for bad payloads; POST /import-cldr returns CLDR sample for supported codes. Permission checks require LANGUAGES_VIEW or MANAGE as appropriate.
+
 
 ---
 
@@ -395,7 +409,7 @@ Heatmap: [Language usage over last 30 days]
 │ │         ╱╲      ╱╲          │   │
 │ │ English ╱  ╲    ╱  ╲         │   │
 │ │        ╱    ╲  ╱    ╲        │   │
-│ │      Arabic ╲╱ ╱ Hindi      │   │
+│ ���      Arabic ╲╱ ╱ Hindi      │   │
 │ └──────────────────────────────┘   │
 │                                     │
 │ New User Preferences:               │
@@ -437,7 +451,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌─────────────────────────────────────┐
 │ Key Discovery                       │
-├───────────────────────────────��─────┤
+├───��───────────────────────────��─────┤
 │ [Run Discovery Audit Now]           │
 │ Last Audit: 2 hours ago (1,247 keys)│
 │                                     │
@@ -669,6 +683,48 @@ All Phase 4 items completed:
 ---
 
 ## 📜 Action Log
+
+- ✅ 2025-10-24: Fixed missing withTenantContext imports for Languages API endpoints to resolve build TypeScript errors.
+  - Summary: Added `import { withTenantContext } from '@/lib/api-wrapper'` to languages API route files and ensured permission checks use withTenantContext wrapper.
+  - Files Modified:
+    - src/app/api/admin/languages/route.ts (edited)
+    - src/app/api/admin/languages/[code]/route.ts (edited)
+    - src/app/api/admin/languages/import/route.ts (edited)
+    - src/app/api/admin/languages/export/route.ts (edited)
+    - src/app/api/admin/languages/[code]/toggle/route.ts (edited)
+  - Testing: Local typecheck/CI previously failed with TS2300 duplicate/undefined identifier; after fix, endpoints compile. Manual smoke tests: GET /api/admin/languages and import/export endpoints return expected payloads when run with tenant context.
+
+- ✅ 2025-10-24: Added Crowdin status API (GET /api/admin/crowdin-integration/status) to surface last sync and connection state.
+  - Summary: New lightweight status endpoint for polling from UI; returns lastSyncAt, lastSyncStatus, and testConnectionOk for the current tenant.
+  - Files Modified:
+    - src/app/api/admin/crowdin-integration/status/route.ts (new)
+  - Testing: Manual verification via GET shows expected fields; permission gating enforces LANGUAGES_VIEW.
+
+- ✅ 2025-10-24: Added Crowdin health and logs endpoints.
+  - Summary: Implemented GET /api/admin/crowdin-integration/project-health (returns completion %) and GET /api/admin/crowdin-integration/logs (returns recent syncs derived from metadata until dedicated logs table exists).
+  - Files Modified:
+    - src/app/api/admin/crowdin-integration/project-health/route.ts (new)
+    - src/app/api/admin/crowdin-integration/logs/route.ts (new)
+  - Testing: Basic GETs verified; both endpoints gated by LANGUAGES_VIEW.
+
+- ✅ 2025-10-24: Implemented Translations admin endpoints (status, missing, recent, analytics, discover, discover schedule).
+  - Summary: Added/verified endpoints that power the TranslationsTab and discovery workflows. Ensured proper tenant context wrapping (withTenantContext), permission checks, and NextResponse usage where applicable. Endpoints support pagination and query params for language, namespace, days, and scheduling.
+  - Files Modified:
+    - src/app/api/admin/translations/status/route.ts (edited)
+    - src/app/api/admin/translations/missing/route.ts (edited)
+    - src/app/api/admin/translations/recent/route.ts (edited)
+    - src/app/api/admin/translations/analytics/route.ts (edited)
+    - src/app/api/admin/translations/discover/route.ts (edited)
+    - src/app/api/admin/translations/discover/schedule/route.ts (edited)
+  - Testing: Manual smoke tests: GET /api/admin/translations/status, /missing, /recent and /analytics return expected JSON shapes. Discovery endpoints return audit payload. Permission checks enforce LANGUAGES_VIEW/MANAGE as appropriate.
+
+- ✅ 2025-10-23T07:00:00Z: Implemented manual Crowdin sync endpoint and wired IntegrationTab "Sync Now" action.
+  - Summary: Added POST /api/admin/crowdin-integration/sync to trigger a sync and update lastSyncAt/lastSyncStatus. Updated IntegrationTab to call the new endpoint and refresh status.
+  - Files Modified:
+    - src/app/api/admin/crowdin-integration/sync/route.ts (new)
+    - src/app/admin/settings/localization/tabs/IntegrationTab.tsx (added manualSync, updated button handler)
+    - src/app/api/admin/crowdin-integration/route.ts (import fix for withTenantContext)
+  - Testing: Updated unit test IntegrationTab "allows triggering manual sync" passes; verified button calls POST /api/admin/crowdin-integration/sync and UI reflects latest sync metadata.
 
 - ✅ 2025-10-23T07:00:00Z: Completed deployment readiness for Phase 4.7.
   - Summary: Created LOCALIZATION_DEPLOYMENT_GUIDE.md (666 lines) covering comprehensive deployment strategy, feature flags, monitoring setup, rollback procedures, post-deployment validation, and incident response runbooks. Includes pre-deployment checklist (code quality, database, performance, documentation), phased rollout strategy (canary 1%, early adopters 10%, full 100%), monitoring configuration (Sentry, custom dashboards, alerts), automated/manual rollback procedures with data recovery options, validation checkpoints (immediate, short-term, medium-term, long-term), and communication templates.
