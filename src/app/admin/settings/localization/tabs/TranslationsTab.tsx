@@ -15,13 +15,21 @@ export const TranslationsTab: React.FC = () => {
   async function loadTranslationStatus() {
     try {
       setLoading(true)
-      const r = await fetch('/api/admin/translations/status')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+      const r = await fetch('/api/admin/translations/status', { signal: controller.signal })
+      clearTimeout(timeoutId)
+
       if (r.ok) {
         const d = await r.json()
         setTranslationStatus(d.data)
       }
     } catch (e) {
       console.error('Failed to load translation status:', e)
+      if ((e as any).name === 'AbortError') {
+        console.error('Request timed out')
+      }
     } finally {
       setLoading(false)
     }

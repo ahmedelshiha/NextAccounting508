@@ -20,13 +20,21 @@ export const UserPreferencesTab: React.FC = () => {
   async function loadAnalytics() {
     try {
       setLoading(true)
-      const r = await fetch('/api/admin/user-language-analytics')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+      const r = await fetch('/api/admin/user-language-analytics', { signal: controller.signal })
+      clearTimeout(timeoutId)
+
       const d = await r.json()
       if (r.ok && d.data) {
         setAnalyticsData(d.data)
       }
     } catch (e) {
       console.error('Failed to load analytics:', e)
+      if ((e as any).name === 'AbortError') {
+        console.error('Request timed out')
+      }
     } finally {
       setLoading(false)
     }
