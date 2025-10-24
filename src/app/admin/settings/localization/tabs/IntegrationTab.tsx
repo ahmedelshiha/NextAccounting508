@@ -205,6 +205,51 @@ export const IntegrationTab: React.FC = () => {
     }
   }
 
+  async function loadWebhookConfig() {
+    try {
+      setWebhookLoading(true)
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      const r = await fetch('/api/admin/crowdin-integration/webhook', { signal: controller.signal })
+      clearTimeout(timeoutId)
+      if (r.ok) {
+        const d = await r.json()
+        setWebhookConfig(d.data)
+        setWebhookEnabled(d.data?.isActive || false)
+      }
+    } catch (e) {
+      console.error('Failed to load webhook config:', e)
+    } finally {
+      setWebhookLoading(false)
+    }
+  }
+
+  async function setupWebhook() {
+    setSaving(true)
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      const r = await fetch('/api/admin/crowdin-integration/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !webhookEnabled }),
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+      const d = await r.json()
+      if (r.ok) {
+        toast.success('Webhook ' + (webhookEnabled ? 'disabled' : 'enabled') + ' successfully')
+        await loadWebhookConfig()
+      } else {
+        toast.error(d.error || 'Failed to setup webhook')
+      }
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to setup webhook')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (loading) {
     return <div className="text-gray-600 py-8 text-center">Loading integration settings...</div>
   }
