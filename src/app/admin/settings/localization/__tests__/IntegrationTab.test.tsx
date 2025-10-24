@@ -242,7 +242,37 @@ describe('IntegrationTab', () => {
       .mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
           json: () => Promise.resolve({ success: true, syncId: 'sync-123' }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: mockSettings }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
         } as Response)
       )
 
