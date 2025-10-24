@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useUserPreferences } from '@/hooks/useUserPreferences'
+import { useTranslations } from '@/lib/i18n'
+import { getDefaultTimezone, TimezoneOption } from '@/lib/timezone-helper'
 import { COMMON_TIMEZONES, LANGUAGES, VALID_LANGUAGES, isValidTimezone } from './constants'
 
 interface LocalizationData {
@@ -16,12 +18,14 @@ interface LocalizationData {
 
 export default function LocalizationTab({ loading }: { loading: boolean }) {
   const { preferences, loading: preferencesLoading, error: preferencesError, updatePreferences, refetch } = useUserPreferences()
+  const { setLocale } = useTranslations()
   const [saving, setSaving] = useState(false)
   const [data, setData] = useState<LocalizationData>({
-    timezone: 'UTC',
+    timezone: getDefaultTimezone(),
     preferredLanguage: 'en',
   })
   const [errors, setErrors] = useState<{ timezone?: string; preferredLanguage?: string }>({})
+  const [timezones, setTimezones] = useState<TimezoneOption[]>(COMMON_TIMEZONES.map(tz => ({ code: tz, label: tz, offset: '', abbreviation: '' })))
 
   // Sync hook data to component state
   useEffect(() => {
@@ -33,6 +37,30 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
       setErrors({})
     }
   }, [preferences])
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadTimezones(){
+      try {
+        const r = await fetch('/api/admin/timezones', { cache: 'force-cache' })
+        if (!r.ok) throw new Error('failed')
+        const d = await r.json()
+        const list: TimezoneOption[] = Array.isArray(d?.data) ? d.data : []
+        if (!cancelled && list.length) {
+          setTimezones(list.map((t: any) => ({
+            code: String(t.code),
+            label: String(t.label || t.code),
+            offset: String(t.offset || ''),
+            abbreviation: String(t.abbreviation || 'UTC'),
+          })))
+        }
+      } catch {
+        // fallback already set
+      }
+    }
+    loadTimezones()
+    return ()=>{ cancelled = true }
+  }, [])
 
 
   const handleSave = async () => {
@@ -53,6 +81,10 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
         preferredLanguage: String(data.preferredLanguage || 'en') as 'en' | 'ar' | 'hi',
       }
       await updatePreferences(payload)
+
+      // Update the UI locale immediately to reflect the language change
+      setLocale(payload.preferredLanguage as 'en' | 'ar' | 'hi')
+
       toast.success('Localization settings saved')
       setErrors({})
     } catch (err) {
@@ -110,10 +142,13 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
           <SelectTrigger id="timezone" className={`mt-2 ${errors.timezone ? 'border-red-500' : ''}`}>
             <SelectValue placeholder="Select timezone" />
           </SelectTrigger>
-          <SelectContent>
-            {COMMON_TIMEZONES.map((tz) => (
-              <SelectItem key={tz} value={tz}>
-                {tz}
+          <SelectContent className="max-h-64">
+            {timezones.map((tz) => (
+              <SelectItem key={tz.code} value={tz.code}>
+                <span className="flex items-center gap-2">
+                  <span>{tz.label}</span>
+                  {tz.offset && <span className="text-xs text-gray-500">({tz.abbreviation})</span>}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>

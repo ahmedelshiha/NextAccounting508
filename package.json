@@ -43,7 +43,9 @@
     "check:duplicates": "node scripts/ci/check-duplicate-api-routes.js && node scripts/ci/check-critical-duplicates.js",
     "validate:stateful-docs": "node scripts/verify_stateful_docs.js",
     "db:migrate:profile-prefs": "tsx scripts/migrate-booking-preferences-to-user-profile.ts",
-    "db:rollback:profile-prefs": "tsx scripts/rollback-user-profile-preferences.ts"
+    "db:rollback:profile-prefs": "tsx scripts/rollback-user-profile-preferences.ts",
+    "discover:keys": "tsx scripts/discover-translation-keys.ts",
+    "test:i18n": "tsx scripts/test-i18n.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
