@@ -24,7 +24,7 @@ export default function BlogCard({ post }: { post: BlogPost }) {
   return (
     <Card role="article" aria-labelledby={`post-${post.id}-title`} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg overflow-hidden">
       <div className="blog-card-visual h-40 bg-gradient-to-br from-blue-100 to-blue-200 relative overflow-hidden">
-        <div className="blog-card-overlay absolute inset-0 bg-blue-600 opacity-10 group-hover:opacity-20 transition-opacity"></div>
+        <div className="blog-card-overlay absolute inset-0 bg-blue-600 opacity-10 group-hover:opacity-15 transition-opacity"></div>
         <div className="blog-card-tags absolute bottom-4 left-4">
           {(post.tags || []).slice(0, 2).map((tag) => (
             <span key={tag} className="blog-card-tag inline-block bg-white/90 text-blue-600 px-2 py-1 rounded text-xs font-medium mr-2">
