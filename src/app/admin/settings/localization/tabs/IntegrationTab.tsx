@@ -74,6 +74,7 @@ export const IntegrationTab: React.FC = () => {
 
   async function loadSyncLogs() {
     try {
+      setLogsLoading(true)
       const r = await fetch('/api/admin/crowdin-integration/logs?limit=10')
       if (r.ok) {
         const d = await r.json()
@@ -81,6 +82,9 @@ export const IntegrationTab: React.FC = () => {
       }
     } catch (e) {
       console.error('Failed to load sync logs:', e)
+      setSyncLogs([])
+    } finally {
+      setLogsLoading(false)
     }
   }
 
