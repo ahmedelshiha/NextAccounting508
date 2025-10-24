@@ -10,15 +10,15 @@ import { useLocalizationContext } from './LocalizationProvider'
 import { TABS } from './constants'
 import type { TabKey } from './types'
 
-// Lazy load tab components for better performance
-const LanguagesTab = lazy(() => import('./tabs/LanguagesTab').then(m => ({ default: m.LanguagesTab })))
-const OrganizationTab = lazy(() => import('./tabs/OrganizationTab').then(m => ({ default: m.OrganizationTab })))
-const UserPreferencesTab = lazy(() => import('./tabs/UserPreferencesTab').then(m => ({ default: m.UserPreferencesTab })))
-const RegionalFormatsTab = lazy(() => import('./tabs/RegionalFormatsTab').then(m => ({ default: m.RegionalFormatsTab })))
-const IntegrationTab = lazy(() => import('./tabs/IntegrationTab').then(m => ({ default: m.IntegrationTab })))
-const TranslationsTab = lazy(() => import('./tabs/TranslationsTab').then(m => ({ default: m.TranslationsTab })))
-const AnalyticsTab = lazy(() => import('./tabs/AnalyticsTab').then(m => ({ default: m.AnalyticsTab })))
-const DiscoveryTab = lazy(() => import('./tabs/DiscoveryTab').then(m => ({ default: m.DiscoveryTab })))
+// Lazy load tab components from the memoized index for better performance
+const LanguagesTab = lazy(() => import('./tabs').then(m => ({ default: m.LanguagesTab })))
+const OrganizationTab = lazy(() => import('./tabs').then(m => ({ default: m.OrganizationTab })))
+const UserPreferencesTab = lazy(() => import('./tabs').then(m => ({ default: m.UserPreferencesTab })))
+const RegionalFormatsTab = lazy(() => import('./tabs').then(m => ({ default: m.RegionalFormatsTab })))
+const IntegrationTab = lazy(() => import('./tabs').then(m => ({ default: m.IntegrationTab })))
+const TranslationsTab = lazy(() => import('./tabs').then(m => ({ default: m.TranslationsTab })))
+const AnalyticsTab = lazy(() => import('./tabs').then(m => ({ default: m.AnalyticsTab })))
+const DiscoveryTab = lazy(() => import('./tabs').then(m => ({ default: m.DiscoveryTab })))
 
 const TAB_COMPONENTS: Record<TabKey, React.ComponentType> = {
   languages: LanguagesTab,
