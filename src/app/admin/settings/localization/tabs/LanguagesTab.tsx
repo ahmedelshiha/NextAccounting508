@@ -41,13 +41,22 @@ export const LanguagesTab: React.FC = () => {
   async function loadLanguages() {
     try {
       setLoading(true)
-      const r = await fetch('/api/admin/languages')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+      const r = await fetch('/api/admin/languages', { signal: controller.signal })
+      clearTimeout(timeoutId)
+
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to load languages')
       setLanguages(d.data || [])
     } catch (e: any) {
       console.error('Failed to load languages:', e)
-      setError(e?.message || 'Failed to load languages')
+      if (e.name === 'AbortError') {
+        setError('Request timed out. Please try again.')
+      } else {
+        setError(e?.message || 'Failed to load languages')
+      }
     } finally {
       setLoading(false)
     }
