@@ -395,7 +395,7 @@ Heatmap: [Language usage over last 30 days]
 │ │         ╱╲      ╱╲          │   │
 │ │ English ╱  ╲    ╱  ╲         │   │
 │ │        ╱    ╲  ╱    ╲        │   │
-│ │      Arabic ╲╱ ╱ Hindi      │   │
+│ ���      Arabic ╲╱ ╱ Hindi      │   │
 │ └──────────────────────────────┘   │
 │                                     │
 │ New User Preferences:               │
@@ -423,7 +423,7 @@ Heatmap: [Language usage over last 30 days]
 **Purpose:** Audit codebase for all translation keys and identify gaps
 
 **Real Functions:**
-- ��� Scan codebase for `t('key')` patterns
+- ✅ Scan codebase for `t('key')` patterns
 - ✅ **NEW: Auto-discover new keys** (compare code vs JSON files)
 - ✅ **NEW: Identify unused keys** (orphaned strings)
 - ✅ **NEW: Detect missing translations** (keys in code but no translation)
@@ -675,6 +675,13 @@ All Phase 4 items completed:
   - Files Modified:
     - src/app/api/admin/crowdin-integration/status/route.ts (new)
   - Testing: Manual verification via GET shows expected fields; permission gating enforces LANGUAGES_VIEW.
+
+- ✅ 2025-10-24: Added Crowdin health and logs endpoints.
+  - Summary: Implemented GET /api/admin/crowdin-integration/project-health (returns completion %) and GET /api/admin/crowdin-integration/logs (returns recent syncs derived from metadata until dedicated logs table exists).
+  - Files Modified:
+    - src/app/api/admin/crowdin-integration/project-health/route.ts (new)
+    - src/app/api/admin/crowdin-integration/logs/route.ts (new)
+  - Testing: Basic GETs verified; both endpoints gated by LANGUAGES_VIEW.
 
 - ✅ 2025-10-24: Implemented manual Crowdin sync endpoint and wired IntegrationTab "Sync Now" action.
   - Summary: Added POST /api/admin/crowdin-integration/sync to trigger a sync and update lastSyncAt/lastSyncStatus. Updated IntegrationTab to call the new endpoint and refresh status.
