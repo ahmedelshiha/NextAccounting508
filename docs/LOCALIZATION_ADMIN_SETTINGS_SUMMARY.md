@@ -236,7 +236,7 @@ Heatmap: [Language usage over last 30 days]
 │ └─ Thousands: .                   │
 │ Preview: د.إ 1.234,56 في 21/10   │
 │ [Copy from en-US] [Save]          │
-└───��─���───────────────────────────────┘
+└───��─────────────────────────────────┘
 ```
 
 **API Endpoints:**
@@ -384,7 +384,7 @@ Heatmap: [Language usage over last 30 days]
 │                                     │
 │ Language Distribution:              │
 │ ┌──────────────────────────────┐   │
-│ │ English: 45%                 │   │
+│ │ English: 45%                 │   ���
 │ │ Arabic: 35%                  │   │
 │ │ Hindi: 15%                   │   │
 │ │ Other: 5%                    │   │
@@ -404,7 +404,7 @@ Heatmap: [Language usage over last 30 days]
 │ Hindi: 12% (↓ from 15%)            │
 │                                     │
 │ [Export Data] [Compare Periods]     │
-└───────────────────────���─────────────┘
+└─────────────────────────────────────┘
 ```
 
 **API Endpoints:**
@@ -435,9 +435,9 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌───���─────────────────────────────────┐
+┌─────────────────────────────────────┐
 │ Key Discovery                       │
-├───────────────────────────────��─────┤
+├────���──────────────────────────��─────┤
 │ [Run Discovery Audit Now]           │
 │ Last Audit: 2 hours ago (1,247 keys)│
 │                                     │
@@ -614,7 +614,7 @@ CREATE TABLE LanguageAnalytics (
 
 ---
 
-## ���� Deployment Checklist
+## 🚀 Deployment Checklist
 
 - [x] Database migrations created & tested
 - [x] API endpoints implemented & tested
@@ -693,7 +693,18 @@ All Phase 4 items completed:
     - src/app/api/admin/crowdin-integration/logs/route.ts (new)
   - Testing: Basic GETs verified; both endpoints gated by LANGUAGES_VIEW.
 
-- ✅ 2025-10-24: Implemented manual Crowdin sync endpoint and wired IntegrationTab "Sync Now" action.
+- ✅ 2025-10-24: Implemented Translations admin endpoints (status, missing, recent, analytics, discover, discover schedule).
+  - Summary: Added/verified endpoints that power the TranslationsTab and discovery workflows. Ensured proper tenant context wrapping (withTenantContext), permission checks, and NextResponse usage where applicable. Endpoints support pagination and query params for language, namespace, days, and scheduling.
+  - Files Modified:
+    - src/app/api/admin/translations/status/route.ts (edited)
+    - src/app/api/admin/translations/missing/route.ts (edited)
+    - src/app/api/admin/translations/recent/route.ts (edited)
+    - src/app/api/admin/translations/analytics/route.ts (edited)
+    - src/app/api/admin/translations/discover/route.ts (edited)
+    - src/app/api/admin/translations/discover/schedule/route.ts (edited)
+  - Testing: Manual smoke tests: GET /api/admin/translations/status, /missing, /recent and /analytics return expected JSON shapes. Discovery endpoints return audit payload. Permission checks enforce LANGUAGES_VIEW/MANAGE as appropriate.
+
+- ✅ 2025-10-23T07:00:00Z: Implemented manual Crowdin sync endpoint and wired IntegrationTab "Sync Now" action.
   - Summary: Added POST /api/admin/crowdin-integration/sync to trigger a sync and update lastSyncAt/lastSyncStatus. Updated IntegrationTab to call the new endpoint and refresh status.
   - Files Modified:
     - src/app/api/admin/crowdin-integration/sync/route.ts (new)
