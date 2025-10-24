@@ -35,7 +35,7 @@ export default function BlogCard({ post }: { post: BlogPost }) {
       </div>
 
       <CardHeader className="pb-3">
-        <CardTitle id={`post-${post.id}-title`} className="text-xl font-semibold text-gray-900 transition-colors line-clamp-2 group-hover:text-blue-600">
+        <CardTitle id={`post-${post.id}-title`} className="text-xl font-semibold text-gray-900 transition-colors line-clamp-2">
           <Link href={`/blog/${post.slug}`} className="hover:text-blue-600">{post.title}</Link>
         </CardTitle>
       </CardHeader>
