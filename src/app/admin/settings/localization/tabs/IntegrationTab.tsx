@@ -6,11 +6,30 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { toast } from 'sonner'
 import { TextField } from '@/components/admin/settings/FormField'
+import { ChevronDown } from 'lucide-react'
+
+interface ProjectHealth {
+  language: string
+  completion: number
+}
+
+interface SyncLog {
+  id: string
+  syncedAt: Date | string
+  status: 'success' | 'failed' | 'partial'
+  keysAdded?: number
+  keysUpdated?: number
+  error?: string
+}
 
 export const IntegrationTab: React.FC = () => {
   const { crowdinIntegration, setCrowdinIntegration, loading, setLoading, saving, setSaving } = useLocalizationContext()
   const [crowdinTestLoading, setCrowdinTestLoading] = useState(false)
   const [crowdinTestResult, setCrowdinTestResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [projectHealth, setProjectHealth] = useState<ProjectHealth[]>([])
+  const [syncLogs, setSyncLogs] = useState<SyncLog[]>([])
+  const [showSyncLogs, setShowSyncLogs] = useState(false)
+  const [logsLoading, setLogsLoading] = useState(false)
 
   useEffect(() => {
     loadCrowdinIntegration()
