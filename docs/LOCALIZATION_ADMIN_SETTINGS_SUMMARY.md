@@ -236,7 +236,7 @@ Heatmap: [Language usage over last 30 days]
 │ └─ Thousands: .                   │
 │ Preview: د.إ 1.234,56 في 21/10   │
 │ [Copy from en-US] [Save]          │
-└───��─────────────────────────────────┘
+└───��─���───────────────────────────────┘
 ```
 
 **API Endpoints:**
@@ -404,7 +404,7 @@ Heatmap: [Language usage over last 30 days]
 │ Hindi: 12% (↓ from 15%)            │
 │                                     │
 │ [Export Data] [Compare Periods]     │
-└─────────────────────────────────────┘
+└───────────────────────���─────────────┘
 ```
 
 **API Endpoints:**
@@ -435,7 +435,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌─────────────────────────────────────┐
+┌───���─────────────────────────────────┐
 │ Key Discovery                       │
 ├───────────────────────────────��─────┤
 │ [Run Discovery Audit Now]           │
@@ -614,7 +614,7 @@ CREATE TABLE LanguageAnalytics (
 
 ---
 
-## 🚀 Deployment Checklist
+## ���� Deployment Checklist
 
 - [x] Database migrations created & tested
 - [x] API endpoints implemented & tested
@@ -669,6 +669,16 @@ All Phase 4 items completed:
 ---
 
 ## 📜 Action Log
+
+- ✅ 2025-10-24: Fixed missing withTenantContext imports for Languages API endpoints to resolve build TypeScript errors.
+  - Summary: Added `import { withTenantContext } from '@/lib/api-wrapper'` to languages API route files and ensured permission checks use withTenantContext wrapper.
+  - Files Modified:
+    - src/app/api/admin/languages/route.ts (edited)
+    - src/app/api/admin/languages/[code]/route.ts (edited)
+    - src/app/api/admin/languages/import/route.ts (edited)
+    - src/app/api/admin/languages/export/route.ts (edited)
+    - src/app/api/admin/languages/[code]/toggle/route.ts (edited)
+  - Testing: Local typecheck/CI previously failed with TS2300 duplicate/undefined identifier; after fix, endpoints compile. Manual smoke tests: GET /api/admin/languages and import/export endpoints return expected payloads when run with tenant context.
 
 - ✅ 2025-10-24: Added Crowdin status API (GET /api/admin/crowdin-integration/status) to surface last sync and connection state.
   - Summary: New lightweight status endpoint for polling from UI; returns lastSyncAt, lastSyncStatus, and testConnectionOk for the current tenant.
