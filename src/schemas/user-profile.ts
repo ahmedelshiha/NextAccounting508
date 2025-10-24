@@ -3,8 +3,12 @@ import { z } from 'zod'
 /**
  * User Preferences Schema and Types
  * Covers timezone, language, and notification preferences
+ *
+ * IMPORTANT: PreferencesSchema uses hardcoded language enum for backward compatibility.
+ * For dynamic language validation, use createPreferencesSchema() factory function.
  */
 
+// Fallback hardcoded schema (used when language registry unavailable)
 export const PreferencesSchema = z.object({
   timezone: z.string().min(1).max(100).default('UTC'),
   preferredLanguage: z.enum(['en', 'ar', 'hi']).default('en'),
@@ -18,6 +22,34 @@ export const PreferencesSchema = z.object({
 })
 
 export type UserPreferences = z.infer<typeof PreferencesSchema>
+
+/**
+ * Factory function to create PreferencesSchema with dynamic language codes
+ * Use this when you have access to the language registry (async context)
+ *
+ * @param enabledLanguages - Array of enabled language codes from language registry
+ * @returns Zod schema with dynamic language enum
+ */
+export function createPreferencesSchema(enabledLanguages: string[]) {
+  if (enabledLanguages.length === 0) {
+    console.warn('createPreferencesSchema called with no enabled languages, using fallback')
+    return PreferencesSchema
+  }
+
+  return z.object({
+    timezone: z.string().min(1).max(100).default('UTC'),
+    preferredLanguage: z
+      .enum(enabledLanguages as [string, ...string[]])
+      .default(enabledLanguages[0] || 'en'),
+    bookingEmailConfirm: z.boolean().default(true),
+    bookingEmailReminder: z.boolean().default(true),
+    bookingEmailReschedule: z.boolean().default(true),
+    bookingEmailCancellation: z.boolean().default(true),
+    bookingSmsReminder: z.boolean().default(false),
+    bookingSmsConfirmation: z.boolean().default(false),
+    reminderHours: z.array(z.number().min(1).max(720)).default([24, 2]),
+  })
+}
 
 /**
  * User Profile Schema and Types
