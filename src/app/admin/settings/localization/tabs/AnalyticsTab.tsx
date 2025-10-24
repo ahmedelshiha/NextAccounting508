@@ -40,7 +40,6 @@ export const AnalyticsTab: React.FC = () => {
 
   async function loadAnalytics() {
     try {
-      setLoading(true)
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
@@ -56,8 +55,6 @@ export const AnalyticsTab: React.FC = () => {
       if ((e as any).name === 'AbortError') {
         console.error('Request timed out')
       }
-    } finally {
-      setLoading(false)
     }
   }
 
