@@ -43,11 +43,20 @@ export const IntegrationTab: React.FC = () => {
   const [webhookEnabled, setWebhookEnabled] = useState(false)
 
   useEffect(() => {
-    loadCrowdinIntegration()
-    loadProjectHealth()
-    loadSyncLogs()
-    loadWebhookConfig()
+    loadData()
   }, [])
+
+  async function loadData() {
+    try {
+      setLoading(true)
+      await loadCrowdinIntegration()
+      await loadProjectHealth()
+      await loadSyncLogs()
+      await loadWebhookConfig()
+    } finally {
+      setLoading(false)
+    }
+  }
 
   async function loadCrowdinIntegration() {
     try {
