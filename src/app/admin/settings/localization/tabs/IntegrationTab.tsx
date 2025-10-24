@@ -43,15 +43,26 @@ export const IntegrationTab: React.FC = () => {
   const [webhookEnabled, setWebhookEnabled] = useState(false)
 
   useEffect(() => {
-    loadCrowdinIntegration()
-    loadProjectHealth()
-    loadSyncLogs()
-    loadWebhookConfig()
+    loadData()
   }, [])
+
+  async function loadData() {
+    setLoading(true)
+    try {
+      // Load sequentially to avoid overwhelming database connection pool
+      await loadCrowdinIntegration()
+      await loadProjectHealth()
+      await loadSyncLogs()
+      await loadWebhookConfig()
+    } catch (e) {
+      console.error('Failed to load integration data:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   async function loadCrowdinIntegration() {
     try {
-      setLoading(true)
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
@@ -75,8 +86,6 @@ export const IntegrationTab: React.FC = () => {
       if ((e as any).name === 'AbortError') {
         console.error('Request timed out')
       }
-    } finally {
-      setLoading(false)
     }
   }
 
