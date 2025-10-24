@@ -60,6 +60,30 @@ export const IntegrationTab: React.FC = () => {
     }
   }
 
+  async function loadProjectHealth() {
+    try {
+      const r = await fetch('/api/admin/crowdin-integration/project-health')
+      if (r.ok) {
+        const d = await r.json()
+        setProjectHealth(d.data || [])
+      }
+    } catch (e) {
+      console.error('Failed to load project health:', e)
+    }
+  }
+
+  async function loadSyncLogs() {
+    try {
+      const r = await fetch('/api/admin/crowdin-integration/logs?limit=10')
+      if (r.ok) {
+        const d = await r.json()
+        setSyncLogs(d.data?.logs || [])
+      }
+    } catch (e) {
+      console.error('Failed to load sync logs:', e)
+    }
+  }
+
   async function testCrowdinConnection() {
     setCrowdinTestLoading(true)
     setCrowdinTestResult(null)
