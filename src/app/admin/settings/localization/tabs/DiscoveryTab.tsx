@@ -25,9 +25,15 @@ export const DiscoveryTab: React.FC = () => {
     setAuditRunning(true)
     setSaving(true)
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout for audit
+
       const r = await fetch('/api/admin/translations/discover', {
         method: 'POST',
+        signal: controller.signal,
       })
+      clearTimeout(timeoutId)
+
       const d = await r.json()
 
       if (r.ok && d.data) {
@@ -37,7 +43,8 @@ export const DiscoveryTab: React.FC = () => {
         toast.error('Failed to run discovery audit')
       }
     } catch (e: any) {
-      toast.error(e.message || 'Failed to run discovery audit')
+      const message = e?.name === 'AbortError' ? 'Audit request timed out' : e.message || 'Failed to run discovery audit'
+      toast.error(message)
     } finally {
       setAuditRunning(false)
       setSaving(false)
@@ -47,11 +54,16 @@ export const DiscoveryTab: React.FC = () => {
   async function scheduleAudit() {
     setSaving(true)
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
       const r = await fetch('/api/admin/translations/discover/schedule', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ frequency: scheduledAudit }),
+        signal: controller.signal,
       })
+      clearTimeout(timeoutId)
 
       if (r.ok) {
         toast.success(`Audit scheduled: ${scheduledAudit === 'none' ? 'Disabled' : scheduledAudit}`)
@@ -59,7 +71,8 @@ export const DiscoveryTab: React.FC = () => {
         toast.error('Failed to schedule audit')
       }
     } catch (e: any) {
-      toast.error(e.message || 'Failed to schedule audit')
+      const message = e?.name === 'AbortError' ? 'Request timed out' : e.message || 'Failed to schedule audit'
+      toast.error(message)
     } finally {
       setSaving(false)
     }

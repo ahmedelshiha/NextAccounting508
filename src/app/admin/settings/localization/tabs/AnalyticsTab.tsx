@@ -32,13 +32,21 @@ export const AnalyticsTab: React.FC = () => {
   async function loadAnalytics() {
     try {
       setLoading(true)
-      const r = await fetch('/api/admin/user-language-analytics')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+      const r = await fetch('/api/admin/user-language-analytics', { signal: controller.signal })
+      clearTimeout(timeoutId)
+
       if (r.ok) {
         const d = await r.json()
         setAnalyticsData(d.data)
       }
     } catch (e) {
       console.error('Failed to load analytics:', e)
+      if ((e as any).name === 'AbortError') {
+        console.error('Request timed out')
+      }
     } finally {
       setLoading(false)
     }
@@ -47,13 +55,21 @@ export const AnalyticsTab: React.FC = () => {
   async function loadTrends() {
     try {
       setTrendsLoading(true)
-      const r = await fetch('/api/admin/user-language-analytics/trends?days=90')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+      const r = await fetch('/api/admin/user-language-analytics/trends?days=90', { signal: controller.signal })
+      clearTimeout(timeoutId)
+
       if (r.ok) {
         const d = await r.json()
         setTrends(d.data)
       }
     } catch (e) {
       console.error('Failed to load trends:', e)
+      if ((e as any).name === 'AbortError') {
+        console.error('Request timed out')
+      }
     } finally {
       setTrendsLoading(false)
     }

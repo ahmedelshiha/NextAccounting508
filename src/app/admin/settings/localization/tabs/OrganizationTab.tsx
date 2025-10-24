@@ -28,13 +28,21 @@ export const OrganizationTab: React.FC = () => {
   async function loadOrgSettings() {
     try {
       setLoading(true)
-      const r = await fetch('/api/admin/org-settings/localization')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+      const r = await fetch('/api/admin/org-settings/localization', { signal: controller.signal })
+      clearTimeout(timeoutId)
+
       if (r.ok) {
         const d = await r.json()
         setOrgSettings(prev => ({ ...prev, ...d.data }))
       }
     } catch (e) {
       console.error('Failed to load org settings:', e)
+      if ((e as any).name === 'AbortError') {
+        setError('Request timed out. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -44,17 +52,28 @@ export const OrganizationTab: React.FC = () => {
     setSaving(true)
     setError(null)
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
       const r = await fetch('/api/admin/org-settings/localization', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orgSettings),
+        signal: controller.signal,
       })
+      clearTimeout(timeoutId)
+
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to save organization settings')
       toast.success('Organization settings saved')
     } catch (e: any) {
-      setError(e?.message || 'Failed to save organization settings')
-      toast.error(e?.message || 'Failed to save settings')
+      if (e.name === 'AbortError') {
+        setError('Request timed out. Please try again.')
+        toast.error('Request timed out')
+      } else {
+        setError(e?.message || 'Failed to save organization settings')
+        toast.error(e?.message || 'Failed to save settings')
+      }
     } finally {
       setSaving(false)
     }

@@ -22,6 +22,14 @@ interface SyncLog {
   error?: string
 }
 
+interface WebhookConfig {
+  webhookUrl: string
+  isActive: boolean
+  events: string[]
+  lastDelivery?: string
+  deliveriesCount: number
+}
+
 export const IntegrationTab: React.FC = () => {
   const { crowdinIntegration, setCrowdinIntegration, loading, setLoading, saving, setSaving } = useLocalizationContext()
   const [crowdinTestLoading, setCrowdinTestLoading] = useState(false)
@@ -30,17 +38,26 @@ export const IntegrationTab: React.FC = () => {
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([])
   const [showSyncLogs, setShowSyncLogs] = useState(false)
   const [logsLoading, setLogsLoading] = useState(false)
+  const [webhookConfig, setWebhookConfig] = useState<WebhookConfig | null>(null)
+  const [webhookLoading, setWebhookLoading] = useState(false)
+  const [webhookEnabled, setWebhookEnabled] = useState(false)
 
   useEffect(() => {
     loadCrowdinIntegration()
     loadProjectHealth()
     loadSyncLogs()
+    loadWebhookConfig()
   }, [])
 
   async function loadCrowdinIntegration() {
     try {
       setLoading(true)
-      const r = await fetch('/api/admin/crowdin-integration')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+      const r = await fetch('/api/admin/crowdin-integration', { signal: controller.signal })
+      clearTimeout(timeoutId)
+
       if (r.ok) {
         const d = await r.json()
         if (d.data) {
@@ -55,6 +72,9 @@ export const IntegrationTab: React.FC = () => {
       }
     } catch (e) {
       console.error('Failed to load Crowdin integration:', e)
+      if ((e as any).name === 'AbortError') {
+        console.error('Request timed out')
+      }
     } finally {
       setLoading(false)
     }
@@ -62,26 +82,42 @@ export const IntegrationTab: React.FC = () => {
 
   async function loadProjectHealth() {
     try {
-      const r = await fetch('/api/admin/crowdin-integration/project-health')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+      const r = await fetch('/api/admin/crowdin-integration/project-health', { signal: controller.signal })
+      clearTimeout(timeoutId)
+
       if (r.ok) {
         const d = await r.json()
         setProjectHealth(d.data || [])
       }
     } catch (e) {
       console.error('Failed to load project health:', e)
+      if ((e as any).name === 'AbortError') {
+        console.error('Request timed out')
+      }
     }
   }
 
   async function loadSyncLogs() {
     try {
       setLogsLoading(true)
-      const r = await fetch('/api/admin/crowdin-integration/logs?limit=10')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+      const r = await fetch('/api/admin/crowdin-integration/logs?limit=10', { signal: controller.signal })
+      clearTimeout(timeoutId)
+
       if (r.ok) {
         const d = await r.json()
         setSyncLogs(d.data?.logs || [])
       }
     } catch (e) {
       console.error('Failed to load sync logs:', e)
+      if ((e as any).name === 'AbortError') {
+        console.error('Request timed out')
+      }
       setSyncLogs([])
     } finally {
       setLogsLoading(false)
@@ -92,6 +128,9 @@ export const IntegrationTab: React.FC = () => {
     setCrowdinTestLoading(true)
     setCrowdinTestResult(null)
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
       const r = await fetch('/api/admin/crowdin-integration', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -99,13 +138,16 @@ export const IntegrationTab: React.FC = () => {
           projectId: crowdinIntegration.projectId,
           apiToken: crowdinIntegration.apiToken,
         }),
+        signal: controller.signal,
       })
+      clearTimeout(timeoutId)
+
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Connection test failed')
       setCrowdinTestResult({ success: true, message: 'Connection successful!' })
       toast.success('Crowdin connection test passed')
     } catch (e: any) {
-      const message = e?.message || 'Connection test failed'
+      const message = e?.name === 'AbortError' ? 'Request timed out' : e?.message || 'Connection test failed'
       setCrowdinTestResult({ success: false, message })
       toast.error(message)
     } finally {
@@ -116,17 +158,24 @@ export const IntegrationTab: React.FC = () => {
   async function saveCrowdinIntegration() {
     setSaving(true)
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
       const r = await fetch('/api/admin/crowdin-integration', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(crowdinIntegration),
+        signal: controller.signal,
       })
+      clearTimeout(timeoutId)
+
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to save Crowdin integration')
       toast.success('Crowdin integration saved')
       await loadCrowdinIntegration()
     } catch (e: any) {
-      toast.error(e?.message || 'Failed to save integration')
+      const message = e?.name === 'AbortError' ? 'Request timed out' : e?.message || 'Failed to save integration'
+      toast.error(message)
     } finally {
       setSaving(false)
     }
@@ -135,15 +184,69 @@ export const IntegrationTab: React.FC = () => {
   async function manualSync() {
     try {
       setCrowdinTestLoading(true)
-      const r = await fetch('/api/admin/crowdin-integration/sync', { method: 'POST' })
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+      const r = await fetch('/api/admin/crowdin-integration/sync', {
+        method: 'POST',
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to run sync')
       toast.success('Sync started successfully')
       await Promise.all([loadCrowdinIntegration(), loadProjectHealth(), loadSyncLogs()])
     } catch (e: any) {
-      toast.error(e?.message || 'Failed to run sync')
+      const message = e?.name === 'AbortError' ? 'Request timed out' : e?.message || 'Failed to run sync'
+      toast.error(message)
     } finally {
       setCrowdinTestLoading(false)
+    }
+  }
+
+  async function loadWebhookConfig() {
+    try {
+      setWebhookLoading(true)
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      const r = await fetch('/api/admin/crowdin-integration/webhook', { signal: controller.signal })
+      clearTimeout(timeoutId)
+      if (r.ok) {
+        const d = await r.json()
+        setWebhookConfig(d.data)
+        setWebhookEnabled(d.data?.isActive || false)
+      }
+    } catch (e) {
+      console.error('Failed to load webhook config:', e)
+    } finally {
+      setWebhookLoading(false)
+    }
+  }
+
+  async function setupWebhook() {
+    setSaving(true)
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      const r = await fetch('/api/admin/crowdin-integration/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !webhookEnabled }),
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+      const d = await r.json()
+      if (r.ok) {
+        toast.success('Webhook ' + (webhookEnabled ? 'disabled' : 'enabled') + ' successfully')
+        await loadWebhookConfig()
+      } else {
+        toast.error(d.error || 'Failed to setup webhook')
+      }
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to setup webhook')
+    } finally {
+      setSaving(false)
     }
   }
 

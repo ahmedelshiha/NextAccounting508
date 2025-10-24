@@ -10,15 +10,15 @@ import { useLocalizationContext } from './LocalizationProvider'
 import { TABS } from './constants'
 import type { TabKey } from './types'
 
-// Lazy load tab components for better performance
-const LanguagesTab = lazy(() => import('./tabs/LanguagesTab').then(m => ({ default: m.LanguagesTab })))
-const OrganizationTab = lazy(() => import('./tabs/OrganizationTab').then(m => ({ default: m.OrganizationTab })))
-const UserPreferencesTab = lazy(() => import('./tabs/UserPreferencesTab').then(m => ({ default: m.UserPreferencesTab })))
-const RegionalFormatsTab = lazy(() => import('./tabs/RegionalFormatsTab').then(m => ({ default: m.RegionalFormatsTab })))
-const IntegrationTab = lazy(() => import('./tabs/IntegrationTab').then(m => ({ default: m.IntegrationTab })))
-const TranslationsTab = lazy(() => import('./tabs/TranslationsTab').then(m => ({ default: m.TranslationsTab })))
-const AnalyticsTab = lazy(() => import('./tabs/AnalyticsTab').then(m => ({ default: m.AnalyticsTab })))
-const DiscoveryTab = lazy(() => import('./tabs/DiscoveryTab').then(m => ({ default: m.DiscoveryTab })))
+// Lazy load tab components from the memoized index for better performance
+const LanguagesTab = lazy(() => import('./tabs').then(m => ({ default: m.LanguagesTab })))
+const OrganizationTab = lazy(() => import('./tabs').then(m => ({ default: m.OrganizationTab })))
+const UserPreferencesTab = lazy(() => import('./tabs').then(m => ({ default: m.UserPreferencesTab })))
+const RegionalFormatsTab = lazy(() => import('./tabs').then(m => ({ default: m.RegionalFormatsTab })))
+const IntegrationTab = lazy(() => import('./tabs').then(m => ({ default: m.IntegrationTab })))
+const TranslationsTab = lazy(() => import('./tabs').then(m => ({ default: m.TranslationsTab })))
+const AnalyticsTab = lazy(() => import('./tabs').then(m => ({ default: m.AnalyticsTab })))
+const DiscoveryTab = lazy(() => import('./tabs').then(m => ({ default: m.DiscoveryTab })))
 
 const TAB_COMPONENTS: Record<TabKey, React.ComponentType> = {
   languages: LanguagesTab,
@@ -41,6 +41,40 @@ const TabFallback = () => (
   </div>
 )
 
+// Error fallback for failed tab loads
+const TabErrorFallback = ({ error }: { error: string }) => (
+  <div className="flex items-center justify-center py-8">
+    <div className="text-center max-w-md">
+      <div className="inline-flex h-8 w-8 rounded-full border-4 border-red-200 border-t-red-600 mb-3" />
+      <p className="text-sm text-red-600">Failed to load tab content</p>
+      <p className="text-xs text-gray-500 mt-2">{error}</p>
+    </div>
+  </div>
+)
+
+// Error boundary for tab content
+class TabErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: string }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props)
+    this.state = { hasError: false, error: '' }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error: error.message }
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('Tab error:', error)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <TabErrorFallback error={this.state.error} />
+    }
+    return this.props.children
+  }
+}
+
 // Memoized tab renderer to prevent unnecessary re-renders
 const TabRenderer = React.memo(function TabRenderer({ TabComponent, loading }: { TabComponent: React.ComponentType | null; loading: boolean }) {
   if (loading) {
@@ -48,13 +82,15 @@ const TabRenderer = React.memo(function TabRenderer({ TabComponent, loading }: {
   }
 
   if (!TabComponent) {
-    return <div className="text-center py-8 text-gray-600">Tab content not found</div>
+    return <TabErrorFallback error="Tab component not found" />
   }
 
   return (
-    <Suspense fallback={<TabFallback />}>
-      <TabComponent />
-    </Suspense>
+    <TabErrorBoundary>
+      <Suspense fallback={<TabFallback />}>
+        <TabComponent />
+      </Suspense>
+    </TabErrorBoundary>
   )
 })
 
