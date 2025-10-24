@@ -135,7 +135,7 @@ export const IntegrationTab: React.FC = () => {
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to run sync')
       toast.success('Sync started successfully')
-      await loadCrowdinIntegration()
+      await Promise.all([loadCrowdinIntegration(), loadProjectHealth(), loadSyncLogs()])
     } catch (e: any) {
       toast.error(e?.message || 'Failed to run sync')
     } finally {
