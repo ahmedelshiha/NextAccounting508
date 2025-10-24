@@ -66,10 +66,10 @@ export default function BlogCard({ post }: { post: BlogPost }) {
             <span className="text-sm text-gray-700">{post.author?.name || 'Author'}</span>
           </div>
 
-          <Button variant="ghost" size="sm" className="group-hover:text-blue-600 transition-colors p-0" asChild>
+          <Button variant="ghost" size="sm" className="transition-colors p-0 hover:text-blue-600" asChild>
             <Link href={`/blog/${post.slug}`} aria-label={`Read more: ${post.title}`}>
               Read More
-              <ArrowRight className="ml-1 h-3 w-3 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" />
             </Link>
           </Button>
         </div>
