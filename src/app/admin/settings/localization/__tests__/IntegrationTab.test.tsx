@@ -69,12 +69,25 @@ describe('IntegrationTab', () => {
       createPrs: true,
     }
 
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ data: mockSettings }),
-      } as Response)
-    )
+    global.fetch = vi.fn()
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: mockSettings }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
+        } as Response)
+      )
 
     render(
       <LocalizationProvider>
