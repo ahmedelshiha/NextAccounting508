@@ -60,7 +60,6 @@ export const IntegrationTab: React.FC = () => {
 
   async function loadCrowdinIntegration() {
     try {
-      setLoading(true)
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
@@ -84,8 +83,6 @@ export const IntegrationTab: React.FC = () => {
       if ((e as any).name === 'AbortError') {
         console.error('Request timed out')
       }
-    } finally {
-      setLoading(false)
     }
   }
 
