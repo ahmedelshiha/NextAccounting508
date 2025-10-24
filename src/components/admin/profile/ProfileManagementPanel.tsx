@@ -12,8 +12,10 @@ import { Loader2, ShieldCheck, User as UserIcon } from "lucide-react"
 
 export interface ProfileManagementPanelProps {
   isOpen: boolean
-  onClose: () => void
-  defaultTab?: "profile" | "security"
+  onClose?: () => void
+  defaultTab?: "profile" | "security" | "notifications" | "booking" | "localization"
+  inline?: boolean
+  fullPage?: boolean
 }
 
 function ProfileTab({ loading, profile, onSave }: { loading: boolean; profile: any; onSave: (key: string, value: string) => Promise<void> }) {
@@ -50,6 +52,11 @@ function ProfileTab({ loading, profile, onSave }: { loading: boolean; profile: a
 }
 
 import AccountActivity from './AccountActivity'
+import NotificationsTab from './NotificationsTab'
+import BookingNotificationsTab from './BookingNotificationsTab'
+import LocalizationTab from './LocalizationTab'
+import { useSession } from 'next-auth/react'
+
 function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading: boolean; profile: any; onPasswordSave: (val: string) => Promise<void>; onMfaSetup: () => Promise<void> }) {
   return (
     <TabsContent value="security" className="mt-4">
@@ -107,20 +114,23 @@ function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading
   )
 }
 
-export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "profile" }: ProfileManagementPanelProps) {
+export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "profile", inline = false, fullPage = false }: ProfileManagementPanelProps) {
   const [tab, setTab] = useState(defaultTab)
   const { profile, loading, update } = useUserProfile()
   const { enrollMfa, mfaSetupData, clearMfaSetup } = useSecuritySettings()
   const [showMfaSetup, setShowMfaSetup] = useState(false)
+  const { data: session } = useSession()
+  const role = (session?.user as any)?.role as string | undefined
 
   useEffect(() => setTab(defaultTab), [defaultTab])
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen && !fullPage) return
     try {
       const saved = window.localStorage.getItem('profile-panel-last-tab')
-      if (!defaultTab && (saved === 'profile' || saved === 'security')) setTab(saved as any)
+      const validTabs = ['profile', 'security', 'booking', 'localization', 'notifications']
+      if (!defaultTab && saved && validTabs.includes(saved)) setTab(saved as any)
     } catch {}
-  }, [isOpen, defaultTab])
+  }, [isOpen, defaultTab, fullPage])
 
   const handleProfileSave = async (key: string, value: string) => {
     await update({ [key]: value })
@@ -142,31 +152,97 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
     clearMfaSetup()
   }
 
+  const TabsBlock = (
+    <Tabs value={tab} onValueChange={(v) => { setTab(v as any); try { window.localStorage.setItem('profile-panel-last-tab', v) } catch {} }}>
+      <div className="sticky top-0 bg-white z-10 pt-1">
+        <TabsList className="w-full h-auto flex-wrap justify-start">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="security">Sign in & security</TabsTrigger>
+          <TabsTrigger value="booking">Booking Notifications</TabsTrigger>
+          <TabsTrigger value="localization">Localization</TabsTrigger>
+        </TabsList>
+      </div>
+
+      <ProfileTab loading={loading} profile={profile} onSave={handleProfileSave} />
+      <SecurityTab
+        loading={loading}
+        profile={profile}
+        onPasswordSave={(val) => handleProfileSave('password', val)}
+        onMfaSetup={handleMfaSetup}
+      />
+      <TabsContent value="booking" className="mt-4">
+        <BookingNotificationsTab loading={loading} />
+      </TabsContent>
+      <TabsContent value="localization" className="mt-4">
+        <LocalizationTab loading={loading} />
+      </TabsContent>
+    </Tabs>
+  )
+
+  if (fullPage) {
+    return (
+      <>
+        <div className="min-h-screen bg-background">
+          <div className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="mx-auto px-4 sm:px-6 lg:px-8 py-4 max-w-7xl">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl font-semibold truncate">Manage profile</h1>
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate mt-0.5">
+                    Update your personal information and security settings
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+            <div className="bg-white rounded-lg border shadow-sm p-6">
+              {TabsBlock}
+            </div>
+          </div>
+        </div>
+
+        {/* MFA Setup Modal */}
+        {showMfaSetup && mfaSetupData && (
+          <MfaSetupModal
+            isOpen={showMfaSetup}
+            onClose={handleMfaSetupClose}
+            setupData={mfaSetupData}
+          />
+        )}
+      </>
+    )
+  }
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={(v) => (!v ? onClose() : null)}>
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Manage profile</DialogTitle>
-          </DialogHeader>
-          <Tabs value={tab} onValueChange={(v) => { setTab(v as any); try { window.localStorage.setItem('profile-panel-last-tab', v) } catch {} }}>
-            <div className="sticky top-0 bg-white z-10 pt-1">
-              <TabsList>
-                <TabsTrigger value="profile">Profile</TabsTrigger>
-                <TabsTrigger value="security">Sign in & security</TabsTrigger>
-              </TabsList>
+      {inline ? (
+        <div className="max-w-3xl w-full mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow rounded-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-lg font-semibold">Manage profile</h1>
+                <p className="text-sm text-gray-500">Update your personal information and security settings</p>
+              </div>
             </div>
-
-            <ProfileTab loading={loading} profile={profile} onSave={handleProfileSave} />
-            <SecurityTab
-              loading={loading}
-              profile={profile}
-              onPasswordSave={(val) => handleProfileSave('password', val)}
-              onMfaSetup={handleMfaSetup}
-            />
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+            {TabsBlock}
+          </div>
+        </div>
+      ) : (
+        <>
+          <Dialog open={isOpen} onOpenChange={(v) => { if (!v) onClose?.() }}>
+            <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Manage profile</DialogTitle>
+              </DialogHeader>
+              {TabsBlock}
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
 
       {/* MFA Setup Modal */}
       {showMfaSetup && mfaSetupData && (

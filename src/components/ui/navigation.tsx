@@ -163,7 +163,7 @@ export function Navigation({ orgName = 'Accounting Firm', orgLogoUrl }: { orgNam
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/portal/settings" className="flex items-center">
+                          <Link href="/admin/profile?tab=preferences" className="flex items-center">
                             <Settings className="mr-2 h-4 w-4" />
                             Settings
                           </Link>
@@ -186,7 +186,7 @@ export function Navigation({ orgName = 'Accounting Firm', orgLogoUrl }: { orgNam
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/portal/settings" className="flex items-center">
+                          <Link href="/admin/profile?tab=preferences" className="flex items-center">
                             <Settings className="mr-2 h-4 w-4" />
                             Settings
                           </Link>
@@ -279,7 +279,7 @@ export function Navigation({ orgName = 'Accounting Firm', orgLogoUrl }: { orgNam
                           Admin Panel
                         </Link>
                         <Link
-                          href="/portal/settings"
+                          href="/admin/profile?tab=preferences"
                           className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
                           onClick={() => setMobileMenuOpen(false)}
                         >
@@ -297,7 +297,7 @@ export function Navigation({ orgName = 'Accounting Firm', orgLogoUrl }: { orgNam
                           My Bookings
                         </Link>
                         <Link
-                          href="/portal/settings"
+                          href="/admin/profile?tab=preferences"
                           className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
                           onClick={() => setMobileMenuOpen(false)}
                         >

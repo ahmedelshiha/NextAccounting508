@@ -12,9 +12,39 @@ export interface EditableFieldProps {
   verified?: boolean
   masked?: boolean
   disabled?: boolean
+  fieldType?: 'text' | 'email' | 'password'
   onSave?: (newValue: string) => Promise<void>
   onVerify?: () => Promise<void>
   description?: string
+}
+
+/**
+ * Validate email format
+ */
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+/**
+ * Get validation error message for field type
+ */
+function getValidationError(fieldType: string | undefined, value: string): string | null {
+  if (!value) return null
+
+  if (fieldType === 'email' && !isValidEmail(value)) {
+    return 'Invalid email address'
+  }
+
+  if (fieldType === 'text' && value.length < 2) {
+    return 'Must be at least 2 characters'
+  }
+
+  if (fieldType === 'text' && value.length > 200) {
+    return 'Must be less than 200 characters'
+  }
+
+  return null
 }
 
 function EditableFieldComponent({
@@ -24,6 +54,7 @@ function EditableFieldComponent({
   verified,
   masked,
   disabled = false,
+  fieldType = 'text',
   onSave,
   onVerify,
   description,
@@ -44,6 +75,14 @@ function EditableFieldComponent({
 
   const handleSave = useCallback(async () => {
     if (!onSave) return
+
+    // Validate before saving
+    const validationError = getValidationError(fieldType, editValue)
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     setSaving(true)
     setError(null)
     try {
@@ -54,7 +93,7 @@ function EditableFieldComponent({
     } finally {
       setSaving(false)
     }
-  }, [editValue, onSave])
+  }, [editValue, onSave, fieldType])
 
   const handleCancel = useCallback(() => {
     setEditValue(value || "")
@@ -87,6 +126,8 @@ function EditableFieldComponent({
   )
 
   if (isEditing) {
+    const charCount = editValue.length
+    const maxChars = 200
     return (
       <div className="border-t border-gray-100 first:border-t-0">
         <div className="px-3 py-3 space-y-2">
@@ -94,20 +135,30 @@ function EditableFieldComponent({
           {description && <p className="text-xs text-gray-500">{description}</p>}
           <input
             ref={inputRef}
-            type="text"
+            type={fieldType === 'password' ? 'password' : fieldType}
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={saving}
+            maxLength={maxChars}
             className="w-full px-2 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
           />
-          {error && <div className="text-xs text-red-600">{error}</div>}
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              {error && <div className="text-xs text-red-600">{error}</div>}
+            </div>
+            {fieldType !== 'password' && (
+              <div className="text-xs text-gray-500 ml-2">
+                {charCount}/{maxChars}
+              </div>
+            )}
+          </div>
           <div className="flex gap-2">
             <Button
               size="sm"
               onClick={handleSave}
-              disabled={saving || editValue === value}
+              disabled={saving || editValue === value || !!error}
               className="flex-1"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Check className="h-4 w-4 mr-1" />}

@@ -10,6 +10,14 @@ export const POST = withTenantContext(async (req: NextRequest) => {
     const userId = ctx.userId ?? undefined
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    // Rate limit: 5 verification attempts per 15 minutes per IP (prevent brute force)
+    try {
+      const { applyRateLimit, getClientIp } = await import('@/lib/rate-limit')
+      const ip = getClientIp(req as unknown as Request)
+      const rl = await applyRateLimit(`user:mfa:verify:${ip}`, 5, 900_000)
+      if (rl && rl.allowed === false) return NextResponse.json({ error: 'Too many verification attempts. Try again later.' }, { status: 429 })
+    } catch {}
+
     const body = await req.json().catch(() => ({})) as any
     const code = String(body?.code || '')
     if (!code) return NextResponse.json({ error: 'Code required' }, { status: 400 })

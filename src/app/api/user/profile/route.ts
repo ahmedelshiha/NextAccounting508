@@ -41,7 +41,7 @@ export const GET = withTenantContext(async (request: Request) => {
         userProfile: { select: { organization: true, twoFactorEnabled: true } },
       },
     })
-    if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
     const merged = { ...user, organization: user.userProfile?.organization ?? null, twoFactorEnabled: user.userProfile?.twoFactorEnabled ?? false }
     delete (merged as any).userProfile
@@ -49,7 +49,7 @@ export const GET = withTenantContext(async (request: Request) => {
     return NextResponse.json({ user: merged })
   } catch (err) {
     console.error('GET /api/user/profile error', err)
-    return NextResponse.json({ error: 'Failed' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 })
   }
 })
 

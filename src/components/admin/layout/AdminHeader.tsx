@@ -12,7 +12,7 @@
 'use client'
 
 import { useRef, useState, lazy, Suspense } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
   Bell,
@@ -67,6 +67,7 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
   const profileTriggerRef = useRef<HTMLButtonElement | null>(null)
   const { unreadCount } = useClientNotifications()
   const breadcrumbs = useBreadcrumbs()
+  const router = useRouter()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -181,7 +182,7 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
 
             {/* User menu */}
             <div onMouseEnter={() => { try { void import('../profile/ProfileManagementPanel') } catch {} }}>
-              <UserProfileDropdown onSignOut={handleSignOut} onOpenProfilePanel={() => setProfileOpen(true)} triggerRef={profileTriggerRef} />
+              <UserProfileDropdown onSignOut={handleSignOut} onOpenProfilePanel={() => { try { router.push('/admin/profile') } catch { } }} triggerRef={profileTriggerRef} />
             </div>
           </div>
         </div>

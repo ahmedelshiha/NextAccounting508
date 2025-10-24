@@ -263,6 +263,11 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (token) {
+        // Preserve email from token (critical for API requests)
+        if (token.email) {
+          session.user.email = token.email
+        }
+
         const tenantId = (token as any).tenantId ?? null
         const tenantSlug = (token as any).tenantSlug ?? null
         const tenantRole = (token as any).tenantRole ?? null

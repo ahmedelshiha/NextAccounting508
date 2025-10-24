@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import { sendBookingReminder } from '@/lib/email'
 import { captureErrorIfAvailable, logAuditSafe } from '@/lib/observability-helpers'
+import { getBCP47Locale } from '@/lib/locale'
 
 export interface ReminderRunResult {
   success: boolean
@@ -206,13 +207,15 @@ export async function processBookingReminders(): Promise<ReminderRunResult> {
       }
       const tenantTz = await getTenantDefaultTimezone(tenantKey)
       const tzForDelivery = prefs?.timeZone || tenantTz || undefined
-      await sendBookingReminder({ id: appt.id, scheduledAt, clientName: appt.client.name || appt.client.email || 'Client', clientEmail: appt.client.email || '', service: { name: appt.service.name } }, { locale: (prefs?.preferredLanguage || 'en'), timeZone: tzForDelivery })
+      const userLanguage = prefs?.preferredLanguage || 'en'
+      const bcp47Locale = getBCP47Locale(userLanguage)
+      await sendBookingReminder({ id: appt.id, scheduledAt, clientName: appt.client.name || appt.client.email || 'Client', clientEmail: appt.client.email || '', service: { name: appt.service.name } }, { locale: bcp47Locale, timeZone: tzForDelivery })
       try {
         const smsUrl = process.env.SMS_WEBHOOK_URL
         const smsAuth = process.env.SMS_WEBHOOK_AUTH
         const wantsSms = prefs?.smsReminder === true
         if (smsUrl && wantsSms && appt.clientPhone) {
-          const locale = (prefs?.preferredLanguage || 'en-US')
+          const locale = bcp47Locale
           const tzOpt = tzForDelivery ? { timeZone: tzForDelivery } as const : undefined
           const formattedDate = new Date(scheduledAt).toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', ...(tzOpt || {}) } as any)
           const formattedTime = new Date(scheduledAt).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', hour12: true, ...(tzOpt || {}) } as any)
