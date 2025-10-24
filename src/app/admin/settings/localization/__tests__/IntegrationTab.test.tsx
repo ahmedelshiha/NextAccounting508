@@ -35,6 +35,10 @@ vi.mock('@/components/admin/settings/FormField', () => ({
   ),
 }))
 
+vi.mock('lucide-react', () => ({
+  ChevronDown: () => <span>ChevronDown</span>,
+}))
+
 describe('IntegrationTab', () => {
   beforeEach(() => {
     global.fetch = vi.fn()
