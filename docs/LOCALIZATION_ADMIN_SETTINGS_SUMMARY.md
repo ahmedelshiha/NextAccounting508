@@ -270,7 +270,7 @@ Heatmap: [Language usage over last 30 days]
 │ Translation Platforms - Crowdin       │
 ├──────────────────────────────────────┤
 │ Project ID: [__________________]    │
-│ API Token:  [__________________]    ���
+│ API Token:  [__________________]    │
 │ [Test Connection] ✓ Connected       │
 │                                     │
 │ Sync Settings:                      │
@@ -330,7 +330,7 @@ Heatmap: [Language usage over last 30 days]
 │                                      │
 │ English (base):    100% ███████████  │
 │ Arabic:             94% ██████████░  │
-│ Hindi:              87% █████████░░��� │
+│ Hindi:              87% █████████░░░ │
 │ French:             78% ████████░░░░ │
 │                                      │
 │ Last 7 Days:                         │
@@ -423,7 +423,7 @@ Heatmap: [Language usage over last 30 days]
 **Purpose:** Audit codebase for all translation keys and identify gaps
 
 **Real Functions:**
-- ✅ Scan codebase for `t('key')` patterns
+- ��� Scan codebase for `t('key')` patterns
 - ✅ **NEW: Auto-discover new keys** (compare code vs JSON files)
 - ✅ **NEW: Identify unused keys** (orphaned strings)
 - ✅ **NEW: Detect missing translations** (keys in code but no translation)
@@ -669,6 +669,12 @@ All Phase 4 items completed:
 ---
 
 ## 📜 Action Log
+
+- ✅ 2025-10-24: Added Crowdin status API (GET /api/admin/crowdin-integration/status) to surface last sync and connection state.
+  - Summary: New lightweight status endpoint for polling from UI; returns lastSyncAt, lastSyncStatus, and testConnectionOk for the current tenant.
+  - Files Modified:
+    - src/app/api/admin/crowdin-integration/status/route.ts (new)
+  - Testing: Manual verification via GET shows expected fields; permission gating enforces LANGUAGES_VIEW.
 
 - ✅ 2025-10-24: Implemented manual Crowdin sync endpoint and wired IntegrationTab "Sync Now" action.
   - Summary: Added POST /api/admin/crowdin-integration/sync to trigger a sync and update lastSyncAt/lastSyncStatus. Updated IntegrationTab to call the new endpoint and refresh status.
