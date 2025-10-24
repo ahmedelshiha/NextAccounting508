@@ -33,6 +33,8 @@ export const IntegrationTab: React.FC = () => {
 
   useEffect(() => {
     loadCrowdinIntegration()
+    loadProjectHealth()
+    loadSyncLogs()
   }, [])
 
   async function loadCrowdinIntegration() {
