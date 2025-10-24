@@ -32,7 +32,12 @@ export const RegionalFormatsTab: React.FC = () => {
   async function loadFormats() {
     try {
       setLoading(true)
-      const r = await fetch('/api/admin/regional-formats')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
+      const r = await fetch('/api/admin/regional-formats', { signal: controller.signal })
+      clearTimeout(timeoutId)
+
       const d = await r.json()
       if (r.ok && d.data) {
         const formatMap: FormatState = {}
@@ -51,6 +56,9 @@ export const RegionalFormatsTab: React.FC = () => {
       }
     } catch (e: any) {
       console.error('Failed to load regional formats:', e)
+      if (e.name === 'AbortError') {
+        console.error('Request timed out')
+      }
     } finally {
       setLoading(false)
     }
@@ -59,6 +67,9 @@ export const RegionalFormatsTab: React.FC = () => {
   async function saveFormat(languageCode: string) {
     setSaving(true)
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
       const r = await fetch('/api/admin/regional-formats', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -66,7 +77,10 @@ export const RegionalFormatsTab: React.FC = () => {
           language: languageCode,
           ...formats[languageCode],
         }),
+        signal: controller.signal,
       })
+      clearTimeout(timeoutId)
+
       if (r.ok) {
         toast.success(`Regional format saved for ${languageCode}`)
         await loadFormats()
@@ -74,7 +88,11 @@ export const RegionalFormatsTab: React.FC = () => {
         toast.error('Failed to save regional format')
       }
     } catch (e: any) {
-      toast.error(e.message || 'Failed to save regional format')
+      if (e.name === 'AbortError') {
+        toast.error('Request timed out')
+      } else {
+        toast.error(e.message || 'Failed to save regional format')
+      }
     } finally {
       setSaving(false)
     }
