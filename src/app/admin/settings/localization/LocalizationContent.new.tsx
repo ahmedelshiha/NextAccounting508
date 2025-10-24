@@ -41,6 +41,40 @@ const TabFallback = () => (
   </div>
 )
 
+// Error fallback for failed tab loads
+const TabErrorFallback = ({ error }: { error: string }) => (
+  <div className="flex items-center justify-center py-8">
+    <div className="text-center max-w-md">
+      <div className="inline-flex h-8 w-8 rounded-full border-4 border-red-200 border-t-red-600 mb-3" />
+      <p className="text-sm text-red-600">Failed to load tab content</p>
+      <p className="text-xs text-gray-500 mt-2">{error}</p>
+    </div>
+  </div>
+)
+
+// Error boundary for tab content
+class TabErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: string }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props)
+    this.state = { hasError: false, error: '' }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error: error.message }
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('Tab error:', error)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <TabErrorFallback error={this.state.error} />
+    }
+    return this.props.children
+  }
+}
+
 // Memoized tab renderer to prevent unnecessary re-renders
 const TabRenderer = React.memo(function TabRenderer({ TabComponent, loading }: { TabComponent: React.ComponentType | null; loading: boolean }) {
   if (loading) {
@@ -48,13 +82,15 @@ const TabRenderer = React.memo(function TabRenderer({ TabComponent, loading }: {
   }
 
   if (!TabComponent) {
-    return <div className="text-center py-8 text-gray-600">Tab content not found</div>
+    return <TabErrorFallback error="Tab component not found" />
   }
 
   return (
-    <Suspense fallback={<TabFallback />}>
-      <TabComponent />
-    </Suspense>
+    <TabErrorBoundary>
+      <Suspense fallback={<TabFallback />}>
+        <TabComponent />
+      </Suspense>
+    </TabErrorBoundary>
   )
 })
 
