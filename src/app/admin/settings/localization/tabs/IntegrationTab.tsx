@@ -38,11 +38,15 @@ export const IntegrationTab: React.FC = () => {
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([])
   const [showSyncLogs, setShowSyncLogs] = useState(false)
   const [logsLoading, setLogsLoading] = useState(false)
+  const [webhookConfig, setWebhookConfig] = useState<WebhookConfig | null>(null)
+  const [webhookLoading, setWebhookLoading] = useState(false)
+  const [webhookEnabled, setWebhookEnabled] = useState(false)
 
   useEffect(() => {
     loadCrowdinIntegration()
     loadProjectHealth()
     loadSyncLogs()
+    loadWebhookConfig()
   }, [])
 
   async function loadCrowdinIntegration() {
