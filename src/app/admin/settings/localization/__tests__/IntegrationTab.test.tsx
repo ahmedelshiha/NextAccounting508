@@ -122,6 +122,18 @@ describe('IntegrationTab', () => {
       .mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: { logs: [] } }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
           json: () => Promise.resolve({ success: true, message: 'Connection successful' }),
         } as Response)
       )
@@ -136,7 +148,7 @@ describe('IntegrationTab', () => {
       expect(screen.queryByText(/Loading integration/i)).not.toBeInTheDocument()
     })
 
-    const testButton = screen.getByRole('button', { name: /Test Connection/i })
+    const testButton = screen.getAllByRole('button', { name: /Test Connection/i })[0]
     await user.click(testButton)
 
     await waitFor(() => {
