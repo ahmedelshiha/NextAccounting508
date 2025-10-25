@@ -5,6 +5,19 @@
 **Owner:** Admin Settings Team
 **Audit Reference:** See `docs/admin/settings/localization/AUDIT_REPORT.md` for detailed findings
 
+## 📚 Documentation Structure
+
+This file provides the high-level implementation roadmap. For detailed information, see:
+
+| Document | Purpose | Location |
+|----------|---------|----------|
+| **Audit Report** | Detailed tab-by-tab audit findings, issues, recommendations | `docs/admin/settings/localization/AUDIT_REPORT.md` |
+| **This File** | Implementation phases, timeline, task breakdown | `docs/LOCALIZATION_ADMIN_SETTINGS_SUMMARY.md` |
+| **Admin Runbooks** | Step-by-step how-to guides for admins | `docs/LOCALIZATION_ADMIN_RUNBOOKS.md` |
+| **API Reference** | Complete REST API documentation | `docs/LOCALIZATION_API_REFERENCE.md` |
+| **Deployment Guide** | Production deployment strategy, rollback plans | `docs/LOCALIZATION_DEPLOYMENT_GUIDE.md` |
+| **Accessibility Audit** | WCAG 2.1 AA compliance details | `docs/LOCALIZATION_ACCESSIBILITY_AUDIT.md` |
+
 ---
 
 ## 📋 Quick Status Overview
@@ -29,7 +42,7 @@
 > - ✅ All CRUD operations persist data correctly
 > - ✅ Permission gating is properly enforced
 > - ✅ Error handling and user feedback are in place
-> - ⚠️ Opportunities for UX improvements and performance optimization
+> - ⚠�� Opportunities for UX improvements and performance optimization
 
 ### Tab Functionality Audit Results
 
@@ -473,7 +486,7 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    DEPLOYMENT TIMELINE                          │
-├───────────────────────���─────────────────────────────────────────┤
+├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │ NOW:  PHASE 0 - PRODUCTION DEPLOYMENT ✅                        │
 │       └─ Deploy current implementation (all tests passing)      │
@@ -794,7 +807,7 @@ src/app/admin/settings/localization/
 │
 ├── tabs/
 │   ├── LanguagesTab.tsx                  # Language management (bulk ops)
-│   ├─��� OrganizationTab.tsx               # Global settings & RTL
+│   ├── OrganizationTab.tsx               # Global settings & RTL
 │   ├── UserPreferencesTab.tsx            # User adoption metrics
 │   ├── RegionalFormatsTab.tsx            # Format templates & presets
 │   ├── IntegrationTab.tsx                # Crowdin sync + webhooks
@@ -929,7 +942,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌────────────────────────────────────────┐
 │ User Language Control                  │
-├───────────────��────────────────────────���
+├──────���────────��────────────────────────���
 │ Total Users: 5,432                     │
 │ Languages in Use: 7                    │
 │                                       │
@@ -1126,7 +1139,7 @@ Heatmap: [Language usage over last 30 days]
 │                                      │
 │ [View All Missing] [Assign Tasks]    │
 │ [Generate Report] [Set Priorities]   │
-└───────────��───────────────────────────┘
+└───────────────────────────────────────┘
 ```
 
 **API Endpoints:**
@@ -1177,7 +1190,7 @@ Heatmap: [Language usage over last 30 days]
 │ │ English ╱  ╲    ╱  ╲         │   │
 │ │        ╱    ╲  ╱    ╲        │   │
 │ ���      Arabic ╲╱ ╱ Hindi      │   │
-│ └───────────────────────��──────┘   │
+│ └──────────────────────────────┘   │
 │                                     │
 │ New User Preferences:               │
 │ English: 50% (↑ from 45%)          │
