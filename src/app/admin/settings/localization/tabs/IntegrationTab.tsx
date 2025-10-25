@@ -158,6 +158,7 @@ export const IntegrationTab: React.FC = () => {
 
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to save Crowdin integration')
+      invalidateCrowdinCaches() // Invalidate cache after mutation
       toast.success('Crowdin integration saved')
       await loadCrowdinIntegration()
     } catch (e: any) {
@@ -182,6 +183,7 @@ export const IntegrationTab: React.FC = () => {
 
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to run sync')
+      invalidateCrowdinCaches() // Invalidate cache after mutation
       toast.success('Sync started successfully')
       await Promise.all([loadCrowdinIntegration(), loadProjectHealth(), loadSyncLogs()])
     } catch (e: any) {
