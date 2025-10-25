@@ -35,6 +35,14 @@ vi.mock('@/components/admin/settings/FormField', () => ({
   ),
 }))
 
+let mutateMock = vi.fn()
+vi.mock('../hooks/useFormMutation', () => ({
+  useFormMutation: () => ({
+    saving: false,
+    mutate: (...args: any[]) => mutateMock(...args),
+  }),
+}))
+
 describe('RegionalFormatsTab', () => {
   beforeEach(() => {
     global.fetch = vi.fn()
