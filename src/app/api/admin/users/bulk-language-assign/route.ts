@@ -1,7 +1,7 @@
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { logAudit } from '@/lib/audit-logger'
+import { logAudit } from '@/lib/audit'
 import prisma from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
