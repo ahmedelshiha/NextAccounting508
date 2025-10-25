@@ -5,7 +5,27 @@ import { useLocalizationContext } from '../LocalizationProvider'
 import { toast } from 'sonner'
 import { Activity, TrendingUp, Download } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import type { LanguageActivityResponse } from '../../../api/admin/language-activity-analytics/route'
+// Local copy of response type to avoid importing server route types in client component
+type LanguageActivityData = {
+  timestamp: string
+  language: string
+  sessionCount: number
+  uniqueUsers: number
+  averageSessionDuration: number
+}
+
+type HeatmapPeriod = {
+  period: string
+  data: LanguageActivityData[]
+}
+
+type LanguageActivityResponse = {
+  success: boolean
+  periods: HeatmapPeriod[]
+  dateRange: { start: string; end: string }
+  summary: { totalSessions: number; totalUsers: number; languagesTracked: number }
+  meta?: any
+}
 import { debounce } from '../utils/performance'
 
 export const LanguageActivityHeatmap: React.FC = () => {
