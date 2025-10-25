@@ -99,21 +99,12 @@ export const IntegrationTab: React.FC = () => {
   async function loadSyncLogs() {
     try {
       setLogsLoading(true)
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/crowdin-integration/logs?limit=10', { signal: controller.signal })
-      clearTimeout(timeoutId)
-
-      if (r.ok) {
-        const d = await r.json()
-        setSyncLogs(d.data?.logs || [])
-      }
+      const d = await cachedFetch<{ data: { logs: SyncLog[] } }>('/api/admin/crowdin-integration/logs?limit=10', {
+        ttlMs: 5 * 60 * 1000, // 5 minute cache
+      })
+      setSyncLogs(d.data?.logs || [])
     } catch (e) {
       console.error('Failed to load sync logs:', e)
-      if ((e as any).name === 'AbortError') {
-        console.error('Request timed out')
-      }
       setSyncLogs([])
     } finally {
       setLogsLoading(false)
