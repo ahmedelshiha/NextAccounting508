@@ -135,11 +135,11 @@ describe('OrganizationTab', () => {
     await user.click(saveButton)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mutateMock).toHaveBeenCalledWith(
         '/api/admin/org-settings/localization',
-        expect.objectContaining({
-          method: 'PUT',
-        })
+        'PUT',
+        expect.objectContaining({ defaultLanguage: 'en' }),
+        expect.objectContaining({ invalidate: expect.any(Array) })
       )
     })
   })
