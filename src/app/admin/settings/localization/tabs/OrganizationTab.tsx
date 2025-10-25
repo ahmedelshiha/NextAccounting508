@@ -116,7 +116,7 @@ export const OrganizationTab: React.FC = () => {
                     }))}
                   />
                   {isDefaultLanguageDisabled && (
-                    <AlertCircle className="h-5 w-5 text-red-600" title="This language is disabled" />
+                    <AlertCircle className="h-5 w-5 text-red-600" aria-label="This language is disabled" />
                   )}
                 </div>
                 <p className="text-xs text-gray-600">Language shown to new users and guests</p>
@@ -136,7 +136,7 @@ export const OrganizationTab: React.FC = () => {
                     }))}
                   />
                   {isFallbackLanguageDisabled && (
-                    <AlertCircle className="h-5 w-5 text-red-600" title="This language is disabled" />
+                    <AlertCircle className="h-5 w-5 text-red-600" aria-label="This language is disabled" />
                   )}
                 </div>
                 <p className="text-xs text-gray-600">Language used when translation is missing</p>
