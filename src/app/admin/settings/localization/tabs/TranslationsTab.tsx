@@ -140,6 +140,11 @@ export const TranslationsTab: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Translation Priority Panel */}
+        <div className="mt-6">
+          <import-placeholder />
+        </div>
       </PermissionGate>
 
       {/* Info Box */}
