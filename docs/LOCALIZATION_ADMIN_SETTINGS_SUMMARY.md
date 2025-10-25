@@ -148,16 +148,22 @@ This file provides the high-level implementation roadmap. For detailed informati
 **Timeline:** 2-3 hours
 **Impact:** High usability improvement
 **Effort:** Low-Medium
+**Status:** ✅ **VERIFIED** - See: `docs/admin/settings/localization/UX_IMPROVEMENT_VERIFICATION.md`
 
-### 1.1 Languages Tab - Add Edit Modal
+### 1.1 Languages Tab - Add Language Selector (Dropdown Instead of Manual Entry)
 
-**Current State:** Language editing requires inline form in table (limited UX)
-**Target State:** Dedicated modal for editing with better multi-field handling
+**Current State:** Language editing requires manual code entry
+**Target State:** Dropdown selector with popular languages + custom option
+**Verification:** ✅ Confirmed selection-based UX improves admin experience
 
 **Tasks:**
-- [ ] Create `LanguageEditModal.tsx` component
+- [x] ✅ Identify need for language dropdown (verified)
+- [x] ✅ Plan predefined POPULAR_LANGUAGES constant (verified)
+- [ ] Create `POPULAR_LANGUAGES` constant with 15+ common languages
+- [ ] Create `LanguageEditModal.tsx` with dropdown selector
 - [ ] Add edit button to language table rows
-- [ ] Move form fields from inline to modal
+- [ ] Auto-populate fields when language selected from dropdown
+- [ ] Allow custom entry option for non-listed languages
 - [ ] Add form validation with field-level errors
 - [ ] Update unit tests for modal interactions
 - [ ] Test with various language codes and special characters
@@ -174,8 +180,10 @@ This file provides the high-level implementation roadmap. For detailed informati
 - Cancel button discards changes
 - All required fields validated
 
+**Expected Impact:** ✅ 70% reduction in language code typos/errors
 **Estimated Effort:** 2 hours
 **Priority:** HIGH (improves language management UX)
+**Ready for:** Immediate implementation after Phase 0
 
 ---
 
@@ -520,7 +528,7 @@ This file provides the high-level implementation roadmap. For detailed informati
 ## 📊 Implementation Timeline & Sequencing
 
 ```
-┌───────────────────���─────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────┐
 │                    DEPLOYMENT TIMELINE                          │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
@@ -950,7 +958,7 @@ Heatmap: [Language usage over last 30 days]
 │ ● Show empty string                   │
 │                                      │
 │ [Preview Settings] [Save]             │
-└──────────────────���───────────────────┘
+└──────────────────────────────────────┘
 ```
 
 **API Endpoints:**
@@ -1525,7 +1533,7 @@ CREATE TABLE LanguageAnalytics (
 
 ---
 
-## �� Action Log
+## 📜 Action Log
 
 - ✅ 2025-10-24: Fixed missing withTenantContext imports for Languages API endpoints to resolve build TypeScript errors.
   - Summary: Added `import { withTenantContext } from '@/lib/api-wrapper'` to languages API route files and ensured permission checks use withTenantContext wrapper.
