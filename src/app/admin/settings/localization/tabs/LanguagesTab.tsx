@@ -89,6 +89,7 @@ export const LanguagesTab: React.FC = () => {
       })
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to toggle language')
+      invalidateLanguageCaches() // Invalidate cache after mutation
       await loadLanguages()
       toast.success('Language status updated')
     } catch (e: any) {
@@ -111,6 +112,7 @@ export const LanguagesTab: React.FC = () => {
         const d = await r.json().catch(() => ({}))
         throw new Error((d as any)?.error || 'Failed to delete language')
       }
+      invalidateLanguageCaches() // Invalidate cache after mutation
       await loadLanguages()
       toast.success('Language deleted')
     } catch (e: any) {
