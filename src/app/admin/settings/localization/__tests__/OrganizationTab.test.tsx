@@ -26,13 +26,21 @@ vi.mock('@/components/admin/settings/FormField', () => ({
     </select>
   ),
   Toggle: ({ value, onChange, label }: any) => (
-    <input 
-      type="checkbox" 
-      checked={value} 
+    <input
+      type="checkbox"
+      checked={value}
       onChange={e => onChange(e.target.checked)}
       aria-label={label}
     />
   ),
+}))
+
+let mutateMock = vi.fn(() => Promise.resolve({ ok: true, data: {} }))
+vi.mock('../hooks/useFormMutation', () => ({
+  useFormMutation: () => ({
+    saving: false,
+    mutate: (...args: any[]) => mutateMock(...args),
+  }),
 }))
 
 describe('OrganizationTab', () => {
@@ -127,11 +135,11 @@ describe('OrganizationTab', () => {
     await user.click(saveButton)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mutateMock).toHaveBeenCalledWith(
         '/api/admin/org-settings/localization',
-        expect.objectContaining({
-          method: 'PUT',
-        })
+        'PUT',
+        expect.objectContaining({ defaultLanguage: 'en' }),
+        expect.objectContaining({ invalidate: expect.any(Array) })
       )
     })
   })
@@ -156,12 +164,16 @@ describe('OrganizationTab', () => {
           json: () => Promise.resolve({ data: mockSettings }),
         } as Response)
       )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: false,
-          json: () => Promise.resolve({ error: 'Failed to save settings' }),
-        } as Response)
-      )
+    // Simulate mutate failing for save
+    mutateMock = vi.fn(() => Promise.resolve({ ok: false, error: 'Failed to save settings' }))
+
+    // Keep global.fetch second call as fallback (not used by mutate)
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ error: 'Failed to save settings' }),
+      } as Response)
+    )
 
     render(
       <LocalizationProvider>

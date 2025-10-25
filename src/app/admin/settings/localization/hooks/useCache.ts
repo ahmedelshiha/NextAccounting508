@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react'
 import { apiCache, generateCacheKey, generateCacheKeyWithMethod } from '../utils/cache'
+import { useFetchWithTimeout } from './useFetchWithTimeout'
 
 interface UseCacheOptions {
   ttlMs?: number // Time to live in milliseconds (default 5 minutes)
@@ -42,6 +43,7 @@ interface CachedFetchOptions extends RequestInit {
  * })
  */
 export function useCache() {
+  const { fetchWithTimeout } = useFetchWithTimeout()
   /**
    * Make a cached fetch request
    */
@@ -73,17 +75,17 @@ export function useCache() {
       }
     }
 
-    // Make the actual request
-    const fetchPromise = fetch(url, {
-      ...fetchOptions,
-      method,
-    }).then(async (response) => {
-      const data = await response.json() as T
-      if (!response.ok) {
-        throw new Error((data as any)?.error || `HTTP ${response.status}`)
+    // Make the actual request (with timeout and standardized errors)
+    const fetchPromise = (async () => {
+      const result = await fetchWithTimeout<T>(url, {
+        ...fetchOptions,
+        method,
+      })
+      if (!result.ok) {
+        throw new Error(result.error || 'Request failed')
       }
-      return data
-    })
+      return result.data as T
+    })()
 
     // Track in-flight request for deduplication
     if (method === 'GET' && !bypassCache) {
@@ -98,7 +100,7 @@ export function useCache() {
     // Non-GET requests (POST, PUT, DELETE) are not cached by default
     const result = await fetchPromise
     return result
-  }, [])
+  }, [fetchWithTimeout])
 
   /**
    * Invalidate cache for a specific URL pattern

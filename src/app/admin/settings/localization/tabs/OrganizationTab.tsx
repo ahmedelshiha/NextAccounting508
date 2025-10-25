@@ -8,6 +8,8 @@ import { SelectField, Toggle } from '@/components/admin/settings/FormField'
 import { toast } from 'sonner'
 import { AlertCircle, CheckCircle } from 'lucide-react'
 import { useCache, invalidateLanguageCaches } from '../hooks/useCache'
+import { useFormMutation } from '../hooks/useFormMutation'
+import { useFormValidation } from '../hooks/useFormValidation'
 
 export const OrganizationTab: React.FC = () => {
   const {
@@ -42,20 +44,14 @@ export const OrganizationTab: React.FC = () => {
     }
   }
 
+  const { validateOrgSettings } = useFormValidation()
+
   function validateSettings(): string | null {
-    const defaultLang = languages.find(l => l.code === orgSettings.defaultLanguage)
-    const fallbackLang = languages.find(l => l.code === orgSettings.fallbackLanguage)
-
-    if (!defaultLang || !defaultLang.enabled) {
-      return 'Default language must be an enabled language'
-    }
-
-    if (!fallbackLang || !fallbackLang.enabled) {
-      return 'Fallback language must be an enabled language'
-    }
-
-    return null
+    const errors = validateOrgSettings(orgSettings, languages)
+    return errors.general || null
   }
+
+  const { saving: mutationSaving, mutate } = useFormMutation()
 
   async function saveOrgSettings() {
     const validationError = validateSettings()
@@ -65,32 +61,21 @@ export const OrganizationTab: React.FC = () => {
       return
     }
 
-    setSaving(true)
     setError(null)
+    setSaving(true)
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/org-settings/localization', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orgSettings),
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to save organization settings')
-      invalidateLanguageCaches() // Invalidate cache after mutation
-      toast.success('Organization settings saved')
-    } catch (e: any) {
-      if (e.name === 'AbortError') {
-        setError('Request timed out. Please try again.')
-        toast.error('Request timed out')
-      } else {
-        setError(e?.message || 'Failed to save organization settings')
-        toast.error(e?.message || 'Failed to save settings')
+      const res = await mutate('/api/admin/org-settings/localization', 'PUT', orgSettings, { invalidate: ['api/admin/org-settings', 'api/admin/languages'] })
+      if (!res.ok) {
+        setError(res.error || 'Failed to save organization settings')
+        toast.error(res.error || 'Failed to save organization settings')
+        return
       }
+      invalidateLanguageCaches()
+      toast.success('Organization settings saved')
+      await loadOrgSettings()
+    } catch (e: any) {
+      setError(e?.message || 'Failed to save organization settings')
+      toast.error(e?.message || 'Failed to save organization settings')
     } finally {
       setSaving(false)
     }
@@ -131,7 +116,7 @@ export const OrganizationTab: React.FC = () => {
                     }))}
                   />
                   {isDefaultLanguageDisabled && (
-                    <AlertCircle className="h-5 w-5 text-red-600" title="This language is disabled" />
+                    <AlertCircle className="h-5 w-5 text-red-600" aria-label="This language is disabled" />
                   )}
                 </div>
                 <p className="text-xs text-gray-600">Language shown to new users and guests</p>
@@ -151,7 +136,7 @@ export const OrganizationTab: React.FC = () => {
                     }))}
                   />
                   {isFallbackLanguageDisabled && (
-                    <AlertCircle className="h-5 w-5 text-red-600" title="This language is disabled" />
+                    <AlertCircle className="h-5 w-5 text-red-600" aria-label="This language is disabled" />
                   )}
                 </div>
                 <p className="text-xs text-gray-600">Language used when translation is missing</p>

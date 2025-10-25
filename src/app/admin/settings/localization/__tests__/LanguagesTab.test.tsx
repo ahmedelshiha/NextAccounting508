@@ -39,6 +39,15 @@ vi.mock('@/components/admin/settings/FormField', () => ({
   ),
 }))
 
+// Mock useFormMutation to capture mutate calls
+let mutateMock = vi.fn(() => Promise.resolve({ ok: true, data: {} }))
+vi.mock('../hooks/useFormMutation', () => ({
+  useFormMutation: () => ({
+    saving: false,
+    mutate: (...args: any[]) => mutateMock(...args),
+  }),
+}))
+
 describe('LanguagesTab', () => {
   beforeEach(() => {
     global.fetch = vi.fn()
@@ -125,11 +134,11 @@ describe('LanguagesTab', () => {
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mutateMock).toHaveBeenCalledWith(
         '/api/admin/languages',
-        expect.objectContaining({
-          method: 'POST',
-        })
+        'POST',
+        expect.objectContaining({ code: 'fr' }),
+        expect.objectContaining({ invalidate: expect.any(Array) })
       )
     })
   })
@@ -184,11 +193,11 @@ describe('LanguagesTab', () => {
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mutateMock).toHaveBeenCalledWith(
         '/api/admin/languages',
-        expect.objectContaining({
-          method: 'POST',
-        })
+        'POST',
+        expect.objectContaining({ code: 'fr' }),
+        expect.objectContaining({ invalidate: expect.any(Array) })
       )
     })
   })
@@ -267,11 +276,11 @@ describe('LanguagesTab', () => {
     await user.click(updateButton)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        `/api/admin/languages/fr`,
-        expect.objectContaining({
-          method: 'PUT',
-        })
+      expect(mutateMock).toHaveBeenCalledWith(
+        '/api/admin/languages/fr',
+        'PUT',
+        expect.any(Object),
+        expect.objectContaining({ invalidate: expect.any(Array) })
       )
     })
   })

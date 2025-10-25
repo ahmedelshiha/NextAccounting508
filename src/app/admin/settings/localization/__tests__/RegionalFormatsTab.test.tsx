@@ -35,6 +35,14 @@ vi.mock('@/components/admin/settings/FormField', () => ({
   ),
 }))
 
+let mutateMock = vi.fn(() => Promise.resolve({ ok: true, data: {} }))
+vi.mock('../hooks/useFormMutation', () => ({
+  useFormMutation: () => ({
+    saving: false,
+    mutate: (...args: any[]) => mutateMock(...args),
+  }),
+}))
+
 describe('RegionalFormatsTab', () => {
   beforeEach(() => {
     global.fetch = vi.fn()
@@ -144,11 +152,11 @@ describe('RegionalFormatsTab', () => {
     await user.click(saveButton)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mutateMock).toHaveBeenCalledWith(
         '/api/admin/regional-formats',
-        expect.objectContaining({
-          method: 'PUT',
-        })
+        'PUT',
+        expect.objectContaining({ language: 'en' }),
+        expect.objectContaining({ invalidate: expect.any(Array) })
       )
     })
   })
@@ -208,12 +216,16 @@ describe('RegionalFormatsTab', () => {
           json: () => Promise.resolve({ data: mockFormats }),
         } as Response)
       )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: false,
-          json: () => Promise.resolve({ error: 'Failed to save formats' }),
-        } as Response)
-      )
+    // simulate failing mutate
+    mutateMock = vi.fn(() => Promise.resolve({ ok: false, error: 'Failed to save formats' }))
+
+    // keep fetch fallback
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ error: 'Failed to save formats' }),
+      } as Response)
+    )
 
     render(
       <LocalizationProvider>

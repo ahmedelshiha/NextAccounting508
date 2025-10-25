@@ -7,6 +7,8 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { toast } from 'sonner'
 import { REGIONAL_FORMAT_PRESETS } from '../constants'
 import { useCache, invalidateLanguageCaches } from '../hooks/useCache'
+import { useFormMutation } from '../hooks/useFormMutation'
+import { useFormValidation } from '../hooks/useFormValidation'
 
 interface FormatState {
   [languageCode: string]: {
@@ -68,6 +70,8 @@ export const RegionalFormatsTab: React.FC = () => {
     }
   }
 
+  const { saving: mutationSaving, mutate } = useFormMutation()
+
   async function saveFormat(languageCode: string) {
     const format = formats[languageCode]
     const newErrors = validateFormats(format)
@@ -80,34 +84,17 @@ export const RegionalFormatsTab: React.FC = () => {
 
     setSaving(true)
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-      const r = await fetch('/api/admin/regional-formats', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          language: languageCode,
-          ...format,
-        }),
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      if (r.ok) {
-        setErrors({})
-        toast.success(`Regional format saved for ${languageCode}`)
-        invalidateLanguageCaches() // Invalidate cache after mutation
-        await loadFormats()
-      } else {
-        toast.error('Failed to save regional format')
+      const res = await mutate('/api/admin/regional-formats', 'PUT', { language: languageCode, ...format }, { invalidate: ['api/admin/regional-formats', 'api/admin/languages'] })
+      if (!res.ok) {
+        toast.error(res.error || 'Failed to save regional format')
+        return
       }
+      setErrors({})
+      toast.success(`Regional format saved for ${languageCode}`)
+      invalidateLanguageCaches()
+      await loadFormats()
     } catch (e: any) {
-      if (e.name === 'AbortError') {
-        toast.error('Request timed out')
-      } else {
-        toast.error(e.message || 'Failed to save regional format')
-      }
+      toast.error(e?.message || 'Failed to save regional format')
     } finally {
       setSaving(false)
     }
@@ -145,28 +132,10 @@ export const RegionalFormatsTab: React.FC = () => {
     }
   }
 
+  const { validateFormat } = useFormValidation()
+
   function validateFormats(format: any): Record<string, string> {
-    const newErrors: Record<string, string> = {}
-
-    if (!format.dateFormat.trim()) {
-      newErrors.dateFormat = 'Date format is required'
-    }
-    if (!format.timeFormat.trim()) {
-      newErrors.timeFormat = 'Time format is required'
-    }
-    if (!format.currencyCode.trim()) {
-      newErrors.currencyCode = 'Currency code is required'
-    } else if (format.currencyCode.length !== 3) {
-      newErrors.currencyCode = 'Currency code must be 3 letters (ISO 4217)'
-    }
-    if (!format.currencySymbol.trim()) {
-      newErrors.currencySymbol = 'Currency symbol is required'
-    }
-    if (!format.numberFormat.trim()) {
-      newErrors.numberFormat = 'Number format is required'
-    }
-
-    return newErrors
+    return validateFormat(format)
   }
 
   function getPreviewText(languageCode: string): string {
@@ -195,6 +164,16 @@ export const RegionalFormatsTab: React.FC = () => {
 
   if (!currentLanguage) {
     return <div className="text-gray-600 py-8 text-center">No enabled languages available</div>
+  }
+
+  const format = formats[selectedLanguage] || {
+    dateFormat: '',
+    timeFormat: '',
+    currencyCode: '',
+    currencySymbol: '',
+    numberFormat: '',
+    decimalSeparator: '.',
+    thousandsSeparator: ',',
   }
 
   return (

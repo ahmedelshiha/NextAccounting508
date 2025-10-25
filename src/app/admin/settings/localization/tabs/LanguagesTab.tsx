@@ -9,6 +9,7 @@ import { TextField, SelectField, Toggle } from '@/components/admin/settings/Form
 import { toast } from 'sonner'
 import { Plus, Trash2, Download, Upload, Star, Edit2 } from 'lucide-react'
 import { useCache, invalidateLanguageCaches } from '../hooks/useCache'
+import { useFormMutation } from '../hooks/useFormMutation'
 import type { LanguageRow } from '../types'
 
 export const LanguagesTab: React.FC = () => {
@@ -45,82 +46,51 @@ export const LanguagesTab: React.FC = () => {
     }
   }
 
+  const { saving: mutationSaving, mutate } = useFormMutation()
+
   async function saveLanguage(language: LanguageRow) {
-    setSaving(true)
     setError(null)
-    try {
-      if (editingLanguage) {
-        const r = await fetch(`/api/admin/languages/${encodeURIComponent(editingLanguage.code)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(language),
-        })
-        const d = await r.json()
-        if (!r.ok) throw new Error(d?.error || 'Failed to update language')
-        toast.success('Language updated successfully')
-      } else {
-        const r = await fetch('/api/admin/languages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(language),
-        })
-        const d = await r.json()
-        if (!r.ok) throw new Error(d?.error || 'Failed to create language')
-        toast.success('Language added successfully')
-      }
-      setModalOpen(false)
-      setEditingLanguage(null)
-      invalidateLanguageCaches() // Invalidate cache after mutation
-      await loadLanguages()
-    } catch (e: any) {
-      setError(e?.message || (editingLanguage ? 'Failed to update language' : 'Failed to create language'))
-      toast.error(e?.message || (editingLanguage ? 'Failed to update language' : 'Failed to create language'))
-    } finally {
-      setSaving(false)
+    const method = editingLanguage ? 'PUT' : 'POST'
+    const url = editingLanguage ? `/api/admin/languages/${encodeURIComponent(editingLanguage.code)}` : '/api/admin/languages'
+
+    const res = await mutate(url as string, method as any, language, { invalidate: ['api/admin/languages'] })
+    if (!res.ok) {
+      setError(res.error || (editingLanguage ? 'Failed to update language' : 'Failed to create language'))
+      toast.error(res.error || (editingLanguage ? 'Failed to update language' : 'Failed to create language'))
+      return
     }
+
+    toast.success(editingLanguage ? 'Language updated successfully' : 'Language added successfully')
+    setModalOpen(false)
+    setEditingLanguage(null)
+    await loadLanguages()
   }
 
   async function toggleLanguage(code: string) {
-    setSaving(true)
     setError(null)
-    try {
-      const r = await fetch(`/api/admin/languages/${encodeURIComponent(code)}/toggle`, {
-        method: 'PATCH',
-      })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to toggle language')
-      invalidateLanguageCaches() // Invalidate cache after mutation
-      await loadLanguages()
-      toast.success('Language status updated')
-    } catch (e: any) {
-      setError(e?.message)
-      toast.error(e?.message)
-    } finally {
-      setSaving(false)
+    const res = await mutate(`/api/admin/languages/${encodeURIComponent(code)}/toggle`, 'PATCH', undefined, { invalidate: ['api/admin/languages'] })
+    if (!res.ok) {
+      const msg = res.error ?? 'Failed to toggle language'
+      setError(msg)
+      toast.error(msg)
+      return
     }
+    await loadLanguages()
+    toast.success('Language status updated')
   }
 
   async function deleteLanguage(code: string) {
     if (!confirm(`Delete language ${code}? This cannot be undone.`)) return
-    setSaving(true)
     setError(null)
-    try {
-      const r = await fetch(`/api/admin/languages/${encodeURIComponent(code)}`, {
-        method: 'DELETE',
-      })
-      if (!r.ok) {
-        const d = await r.json().catch(() => ({}))
-        throw new Error((d as any)?.error || 'Failed to delete language')
-      }
-      invalidateLanguageCaches() // Invalidate cache after mutation
-      await loadLanguages()
-      toast.success('Language deleted')
-    } catch (e: any) {
-      setError(e?.message)
-      toast.error(e?.message)
-    } finally {
-      setSaving(false)
+    const res = await mutate(`/api/admin/languages/${encodeURIComponent(code)}`, 'DELETE', undefined, { invalidate: ['api/admin/languages'] })
+    if (!res.ok) {
+      const msg = res.error ?? 'Failed to delete language'
+      setError(msg)
+      toast.error(msg)
+      return
     }
+    await loadLanguages()
+    toast.success('Language deleted')
   }
 
   async function exportLanguages() {
@@ -147,22 +117,16 @@ export const LanguagesTab: React.FC = () => {
       const text = await file.text()
       const data = JSON.parse(text) as LanguageRow[]
 
-      setSaving(true)
-      const r = await fetch('/api/admin/languages/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ languages: data }),
-      })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to import languages')
-
-      invalidateLanguageCaches() // Invalidate cache after mutation
-      await loadLanguages()
-      toast.success(`Imported ${data.length} languages`)
+      const res = await mutate('/api/admin/languages/import', 'POST', { languages: data }, { invalidate: ['api/admin/languages'] })
+      if (!res.ok) {
+        toast.error(res.error || 'Failed to import languages')
+      } else {
+        await loadLanguages()
+        toast.success(`Imported ${data.length} languages`)
+      }
     } catch (e: any) {
       toast.error(e?.message || 'Failed to import languages')
     } finally {
-      setSaving(false)
       if (e.target) e.target.value = ''
     }
   }
