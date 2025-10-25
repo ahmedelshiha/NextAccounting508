@@ -7,6 +7,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { SelectField, Toggle } from '@/components/admin/settings/FormField'
 import { toast } from 'sonner'
 import { AlertCircle, CheckCircle } from 'lucide-react'
+import { useCache, invalidateLanguageCaches } from '../hooks/useCache'
 
 export const OrganizationTab: React.FC = () => {
   const {
@@ -19,6 +20,7 @@ export const OrganizationTab: React.FC = () => {
     setError,
   } = useLocalizationContext()
 
+  const { cachedFetch } = useCache()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -28,21 +30,13 @@ export const OrganizationTab: React.FC = () => {
   async function loadOrgSettings() {
     try {
       setLoading(true)
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/org-settings/localization', { signal: controller.signal })
-      clearTimeout(timeoutId)
-
-      if (r.ok) {
-        const d = await r.json()
-        setOrgSettings(prev => ({ ...prev, ...d.data }))
-      }
+      const d = await cachedFetch<{ data: any }>('/api/admin/org-settings/localization', {
+        ttlMs: 5 * 60 * 1000, // 5 minute cache
+      })
+      setOrgSettings(prev => ({ ...prev, ...d.data }))
     } catch (e) {
       console.error('Failed to load org settings:', e)
-      if ((e as any).name === 'AbortError') {
-        setError('Request timed out. Please try again.')
-      }
+      setError('Failed to load organization settings')
     } finally {
       setLoading(false)
     }
@@ -87,6 +81,7 @@ export const OrganizationTab: React.FC = () => {
 
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to save organization settings')
+      invalidateLanguageCaches() // Invalidate cache after mutation
       toast.success('Organization settings saved')
     } catch (e: any) {
       if (e.name === 'AbortError') {

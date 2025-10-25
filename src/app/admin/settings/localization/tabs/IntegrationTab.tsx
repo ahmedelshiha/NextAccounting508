@@ -7,6 +7,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { toast } from 'sonner'
 import { TextField } from '@/components/admin/settings/FormField'
 import { ChevronDown, Copy, Check, AlertCircle } from 'lucide-react'
+import { useCache, invalidateCrowdinCaches } from '../hooks/useCache'
 
 interface ProjectHealth {
   language: string
@@ -32,6 +33,7 @@ interface WebhookConfig {
 
 export const IntegrationTab: React.FC = () => {
   const { crowdinIntegration, setCrowdinIntegration, saving, setSaving } = useLocalizationContext()
+  const { cachedFetch } = useCache()
   const [loading, setLoading] = useState(true)
   const [crowdinTestLoading, setCrowdinTestLoading] = useState(false)
   const [crowdinTestResult, setCrowdinTestResult] = useState<{ success: boolean; message: string } | null>(null)
@@ -52,11 +54,15 @@ export const IntegrationTab: React.FC = () => {
   async function loadData() {
     setLoading(true)
     try {
-      // Load sequentially to avoid overwhelming database connection pool
-      await loadCrowdinIntegration()
-      await loadProjectHealth()
-      await loadSyncLogs()
-      await loadWebhookConfig()
+      // Load all data in parallel for better performance
+      // Each request is independent and can be made simultaneously
+      // Response caching prevents duplicate requests even with parallel loading
+      await Promise.all([
+        loadCrowdinIntegration(),
+        loadProjectHealth(),
+        loadSyncLogs(),
+        loadWebhookConfig(),
+      ])
     } catch (e) {
       console.error('Failed to load integration data:', e)
     } finally {
@@ -66,70 +72,43 @@ export const IntegrationTab: React.FC = () => {
 
   async function loadCrowdinIntegration() {
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/crowdin-integration', { signal: controller.signal })
-      clearTimeout(timeoutId)
-
-      if (r.ok) {
-        const d = await r.json()
-        if (d.data) {
-          setCrowdinIntegration({
-            projectId: d.data.projectId || '',
-            apiToken: d.data.apiTokenMasked || '',
-            autoSyncDaily: d.data.autoSyncDaily ?? true,
-            syncOnDeploy: d.data.syncOnDeploy ?? false,
-            createPrs: d.data.createPrs ?? true,
-          })
-        }
+      const d = await cachedFetch<{ data: any }>('/api/admin/crowdin-integration', {
+        ttlMs: 5 * 60 * 1000, // 5 minute cache
+      })
+      if (d.data) {
+        setCrowdinIntegration({
+          projectId: d.data.projectId || '',
+          apiToken: d.data.apiTokenMasked || '',
+          autoSyncDaily: d.data.autoSyncDaily ?? true,
+          syncOnDeploy: d.data.syncOnDeploy ?? false,
+          createPrs: d.data.createPrs ?? true,
+        })
       }
     } catch (e) {
       console.error('Failed to load Crowdin integration:', e)
-      if ((e as any).name === 'AbortError') {
-        console.error('Request timed out')
-      }
     }
   }
 
   async function loadProjectHealth() {
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/crowdin-integration/project-health', { signal: controller.signal })
-      clearTimeout(timeoutId)
-
-      if (r.ok) {
-        const d = await r.json()
-        setProjectHealth(d.data || [])
-      }
+      const d = await cachedFetch<{ data: ProjectHealth[] }>('/api/admin/crowdin-integration/project-health', {
+        ttlMs: 5 * 60 * 1000, // 5 minute cache
+      })
+      setProjectHealth(d.data || [])
     } catch (e) {
       console.error('Failed to load project health:', e)
-      if ((e as any).name === 'AbortError') {
-        console.error('Request timed out')
-      }
     }
   }
 
   async function loadSyncLogs() {
     try {
       setLogsLoading(true)
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/crowdin-integration/logs?limit=10', { signal: controller.signal })
-      clearTimeout(timeoutId)
-
-      if (r.ok) {
-        const d = await r.json()
-        setSyncLogs(d.data?.logs || [])
-      }
+      const d = await cachedFetch<{ data: { logs: SyncLog[] } }>('/api/admin/crowdin-integration/logs?limit=10', {
+        ttlMs: 5 * 60 * 1000, // 5 minute cache
+      })
+      setSyncLogs(d.data?.logs || [])
     } catch (e) {
       console.error('Failed to load sync logs:', e)
-      if ((e as any).name === 'AbortError') {
-        console.error('Request timed out')
-      }
       setSyncLogs([])
     } finally {
       setLogsLoading(false)
@@ -183,6 +162,7 @@ export const IntegrationTab: React.FC = () => {
 
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to save Crowdin integration')
+      invalidateCrowdinCaches() // Invalidate cache after mutation
       toast.success('Crowdin integration saved')
       await loadCrowdinIntegration()
     } catch (e: any) {
@@ -207,6 +187,7 @@ export const IntegrationTab: React.FC = () => {
 
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to run sync')
+      invalidateCrowdinCaches() // Invalidate cache after mutation
       toast.success('Sync started successfully')
       await Promise.all([loadCrowdinIntegration(), loadProjectHealth(), loadSyncLogs()])
     } catch (e: any) {

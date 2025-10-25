@@ -8,6 +8,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 import { TextField, SelectField, Toggle } from '@/components/admin/settings/FormField'
 import { toast } from 'sonner'
 import { Plus, Trash2, Download, Upload, Star, Edit2 } from 'lucide-react'
+import { useCache, invalidateLanguageCaches } from '../hooks/useCache'
 import type { LanguageRow } from '../types'
 
 export const LanguagesTab: React.FC = () => {
@@ -20,6 +21,7 @@ export const LanguagesTab: React.FC = () => {
     setError,
   } = useLocalizationContext()
 
+  const { cachedFetch, invalidateCache } = useCache()
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingLanguage, setEditingLanguage] = useState<LanguageRow | null>(null)
@@ -31,22 +33,13 @@ export const LanguagesTab: React.FC = () => {
   async function loadLanguages() {
     try {
       setLoading(true)
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/languages', { signal: controller.signal })
-      clearTimeout(timeoutId)
-
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to load languages')
+      const d = await cachedFetch<{ data: LanguageRow[] }>('/api/admin/languages', {
+        ttlMs: 5 * 60 * 1000, // 5 minute cache
+      })
       setLanguages(d.data || [])
     } catch (e: any) {
       console.error('Failed to load languages:', e)
-      if (e.name === 'AbortError') {
-        setError('Request timed out. Please try again.')
-      } else {
-        setError(e?.message || 'Failed to load languages')
-      }
+      setError(e?.message || 'Failed to load languages')
     } finally {
       setLoading(false)
     }
@@ -77,6 +70,7 @@ export const LanguagesTab: React.FC = () => {
       }
       setModalOpen(false)
       setEditingLanguage(null)
+      invalidateLanguageCaches() // Invalidate cache after mutation
       await loadLanguages()
     } catch (e: any) {
       setError(e?.message || (editingLanguage ? 'Failed to update language' : 'Failed to create language'))
@@ -95,6 +89,7 @@ export const LanguagesTab: React.FC = () => {
       })
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to toggle language')
+      invalidateLanguageCaches() // Invalidate cache after mutation
       await loadLanguages()
       toast.success('Language status updated')
     } catch (e: any) {
@@ -117,6 +112,7 @@ export const LanguagesTab: React.FC = () => {
         const d = await r.json().catch(() => ({}))
         throw new Error((d as any)?.error || 'Failed to delete language')
       }
+      invalidateLanguageCaches() // Invalidate cache after mutation
       await loadLanguages()
       toast.success('Language deleted')
     } catch (e: any) {
@@ -150,7 +146,7 @@ export const LanguagesTab: React.FC = () => {
     try {
       const text = await file.text()
       const data = JSON.parse(text) as LanguageRow[]
-      
+
       setSaving(true)
       const r = await fetch('/api/admin/languages/import', {
         method: 'POST',
@@ -159,7 +155,8 @@ export const LanguagesTab: React.FC = () => {
       })
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to import languages')
-      
+
+      invalidateLanguageCaches() // Invalidate cache after mutation
       await loadLanguages()
       toast.success(`Imported ${data.length} languages`)
     } catch (e: any) {
