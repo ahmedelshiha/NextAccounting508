@@ -131,28 +131,10 @@ export const RegionalFormatsTab: React.FC = () => {
     }
   }
 
+  const { validateFormat } = useFormValidation()
+
   function validateFormats(format: any): Record<string, string> {
-    const newErrors: Record<string, string> = {}
-
-    if (!format.dateFormat.trim()) {
-      newErrors.dateFormat = 'Date format is required'
-    }
-    if (!format.timeFormat.trim()) {
-      newErrors.timeFormat = 'Time format is required'
-    }
-    if (!format.currencyCode.trim()) {
-      newErrors.currencyCode = 'Currency code is required'
-    } else if (format.currencyCode.length !== 3) {
-      newErrors.currencyCode = 'Currency code must be 3 letters (ISO 4217)'
-    }
-    if (!format.currencySymbol.trim()) {
-      newErrors.currencySymbol = 'Currency symbol is required'
-    }
-    if (!format.numberFormat.trim()) {
-      newErrors.numberFormat = 'Number format is required'
-    }
-
-    return newErrors
+    return validateFormat(format)
   }
 
   function getPreviewText(languageCode: string): string {
