@@ -110,32 +110,20 @@ export const DiscoveryTab: React.FC = () => {
     }
 
     setBulkAddLoading(true)
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-
-      const keysArray = Array.from(approvedKeys)
-      const r = await fetch('/api/admin/translations/discover/approve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keys: keysArray }),
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      if (r.ok) {
-        const approvedCount = keysArray.length
-        toast.success(`Added ${approvedCount} key(s) to translation system`)
-        setApprovedKeys(new Set())
-      } else {
-        toast.error('Failed to add keys')
-      }
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Request timed out' : e.message || 'Failed to add keys'
-      toast.error(message)
-    } finally {
-      setBulkAddLoading(false)
+    const keysArray = Array.from(approvedKeys)
+    const res = await mutate(
+      '/api/admin/translations/discover/approve',
+      'POST',
+      { keys: keysArray },
+      { invalidate: [] }
+    )
+    if (res.ok) {
+      toast.success(`Added ${keysArray.length} key(s) to translation system`)
+      setApprovedKeys(new Set())
+    } else {
+      toast.error(res.error || 'Failed to add keys')
     }
+    setBulkAddLoading(false)
   }
 
   return (
