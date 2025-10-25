@@ -42,6 +42,8 @@ export const IntegrationTab: React.FC = () => {
   const [webhookConfig, setWebhookConfig] = useState<WebhookConfig | null>(null)
   const [webhookLoading, setWebhookLoading] = useState(false)
   const [webhookEnabled, setWebhookEnabled] = useState(false)
+  const [copiedWebhookUrl, setCopiedWebhookUrl] = useState(false)
+  const [showWebhookDetails, setShowWebhookDetails] = useState(false)
 
   useEffect(() => {
     loadData()
