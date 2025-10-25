@@ -81,6 +81,7 @@ export const OrganizationTab: React.FC = () => {
 
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to save organization settings')
+      invalidateLanguageCaches() // Invalidate cache after mutation
       toast.success('Organization settings saved')
     } catch (e: any) {
       if (e.name === 'AbortError') {
