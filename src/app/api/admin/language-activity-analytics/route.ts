@@ -168,23 +168,24 @@ export async function handler(request: Request) {
 
     // Process audit logs
     for (const a of auditLogs) {
-      const ua = a.userAgent || (a.metadata && a.metadata.userAgent) || null
+      const metaObj: any = a.metadata as any
+      const ua = (a.userAgent as any) || (metaObj && metaObj.userAgent) || null
       const device = detectDeviceFromUA(ua)
       availableDevices.add(device)
 
       let lang: string | null = null
       try {
-        if (a.metadata && typeof a.metadata === 'object') {
-          if (a.metadata.language) lang = String(a.metadata.language)
-          else if (a.metadata.to) lang = String(a.metadata.to)
-          else if (a.metadata.preferredLanguage) lang = String(a.metadata.preferredLanguage)
+        if (metaObj && typeof metaObj === 'object') {
+          if (metaObj.language) lang = String(metaObj.language)
+          else if (metaObj.to) lang = String(metaObj.to)
+          else if (metaObj.preferredLanguage) lang = String(metaObj.preferredLanguage)
         }
       } catch (e) {
         lang = null
       }
 
       const profile = a.userId ? profileByUserId.get(a.userId) : null
-      if (!lang && profile) lang = profile.preferredLanguage || null
+      if (!lang && profile) lang = (profile.preferredLanguage as any) || null
       if (!lang) lang = 'en'
 
       if (languagesFilter && !languagesFilter.includes(lang)) continue
@@ -194,7 +195,7 @@ export async function handler(request: Request) {
       availableRegions.add(region)
       if (regionFilter !== 'all' && region !== regionFilter) continue
 
-      addEntry(new Date(a.createdAt), lang, a.userId || undefined)
+      addEntry(new Date(a.createdAt as any), lang, a.userId || undefined)
     }
 
     // Additionally include snapshot of current user language preferences
