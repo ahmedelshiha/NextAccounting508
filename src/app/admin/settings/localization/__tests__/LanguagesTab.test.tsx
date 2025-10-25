@@ -39,6 +39,15 @@ vi.mock('@/components/admin/settings/FormField', () => ({
   ),
 }))
 
+// Mock useFormMutation to capture mutate calls
+let mutateMock = vi.fn()
+vi.mock('../hooks/useFormMutation', () => ({
+  useFormMutation: () => ({
+    saving: false,
+    mutate: (...args: any[]) => mutateMock(...args),
+  }),
+}))
+
 describe('LanguagesTab', () => {
   beforeEach(() => {
     global.fetch = vi.fn()
