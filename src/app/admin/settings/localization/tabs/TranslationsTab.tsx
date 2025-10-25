@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useLocalizationContext } from '../LocalizationProvider'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
+import { TranslationPriorityPanel } from '../components/TranslationPriorityPanel'
 
 export const TranslationsTab: React.FC = () => {
   const { translationStatus, setTranslationStatus } = useLocalizationContext()
@@ -143,7 +144,7 @@ export const TranslationsTab: React.FC = () => {
 
         {/* Translation Priority Panel */}
         <div className="mt-6">
-          <import-placeholder />
+          <TranslationPriorityPanel />
         </div>
       </PermissionGate>
 
