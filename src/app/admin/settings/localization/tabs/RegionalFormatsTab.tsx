@@ -122,8 +122,45 @@ export const RegionalFormatsTab: React.FC = () => {
           thousandsSeparator: template.thousandsSeparator,
         },
       }))
+      setErrors({})
       toast.success(`Applied ${templateKey} template`)
     }
+  }
+
+  function copyFromLanguage(sourceLanguage: string, targetLanguage: string) {
+    const sourceFormat = formats[sourceLanguage]
+    if (sourceFormat) {
+      setFormats(prev => ({
+        ...prev,
+        [targetLanguage]: { ...sourceFormat },
+      }))
+      setErrors({})
+      toast.success(`Copied format from ${sourceLanguage} to ${targetLanguage}`)
+    }
+  }
+
+  function validateFormats(format: any): Record<string, string> {
+    const newErrors: Record<string, string> = {}
+
+    if (!format.dateFormat.trim()) {
+      newErrors.dateFormat = 'Date format is required'
+    }
+    if (!format.timeFormat.trim()) {
+      newErrors.timeFormat = 'Time format is required'
+    }
+    if (!format.currencyCode.trim()) {
+      newErrors.currencyCode = 'Currency code is required'
+    } else if (format.currencyCode.length !== 3) {
+      newErrors.currencyCode = 'Currency code must be 3 letters (ISO 4217)'
+    }
+    if (!format.currencySymbol.trim()) {
+      newErrors.currencySymbol = 'Currency symbol is required'
+    }
+    if (!format.numberFormat.trim()) {
+      newErrors.numberFormat = 'Number format is required'
+    }
+
+    return newErrors
   }
 
   function getPreviewText(languageCode: string): string {
