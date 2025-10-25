@@ -70,6 +70,7 @@ export const LanguagesTab: React.FC = () => {
       }
       setModalOpen(false)
       setEditingLanguage(null)
+      invalidateLanguageCaches() // Invalidate cache after mutation
       await loadLanguages()
     } catch (e: any) {
       setError(e?.message || (editingLanguage ? 'Failed to update language' : 'Failed to create language'))
