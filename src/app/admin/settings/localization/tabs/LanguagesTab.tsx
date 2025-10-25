@@ -66,46 +66,28 @@ export const LanguagesTab: React.FC = () => {
   }
 
   async function toggleLanguage(code: string) {
-    setSaving(true)
     setError(null)
-    try {
-      const r = await fetch(`/api/admin/languages/${encodeURIComponent(code)}/toggle`, {
-        method: 'PATCH',
-      })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to toggle language')
-      invalidateLanguageCaches() // Invalidate cache after mutation
-      await loadLanguages()
-      toast.success('Language status updated')
-    } catch (e: any) {
-      setError(e?.message)
-      toast.error(e?.message)
-    } finally {
-      setSaving(false)
+    const res = await mutate(`/api/admin/languages/${encodeURIComponent(code)}/toggle`, 'PATCH', undefined, { invalidate: ['api/admin/languages'] })
+    if (!res.ok) {
+      setError(res.error)
+      toast.error(res.error)
+      return
     }
+    await loadLanguages()
+    toast.success('Language status updated')
   }
 
   async function deleteLanguage(code: string) {
     if (!confirm(`Delete language ${code}? This cannot be undone.`)) return
-    setSaving(true)
     setError(null)
-    try {
-      const r = await fetch(`/api/admin/languages/${encodeURIComponent(code)}`, {
-        method: 'DELETE',
-      })
-      if (!r.ok) {
-        const d = await r.json().catch(() => ({}))
-        throw new Error((d as any)?.error || 'Failed to delete language')
-      }
-      invalidateLanguageCaches() // Invalidate cache after mutation
-      await loadLanguages()
-      toast.success('Language deleted')
-    } catch (e: any) {
-      setError(e?.message)
-      toast.error(e?.message)
-    } finally {
-      setSaving(false)
+    const res = await mutate(`/api/admin/languages/${encodeURIComponent(code)}`, 'DELETE', undefined, { invalidate: ['api/admin/languages'] })
+    if (!res.ok) {
+      setError(res.error)
+      toast.error(res.error)
+      return
     }
+    await loadLanguages()
+    toast.success('Language deleted')
   }
 
   async function exportLanguages() {
