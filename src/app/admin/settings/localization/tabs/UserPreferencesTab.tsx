@@ -11,7 +11,8 @@ interface AnalyticsDistribution {
 }
 
 export const UserPreferencesTab: React.FC = () => {
-  const { languages, analyticsData, setAnalyticsData, loading, setLoading } = useLocalizationContext()
+  const { languages, analyticsData, setAnalyticsData } = useLocalizationContext()
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadAnalytics()
