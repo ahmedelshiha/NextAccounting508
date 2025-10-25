@@ -216,12 +216,16 @@ describe('RegionalFormatsTab', () => {
           json: () => Promise.resolve({ data: mockFormats }),
         } as Response)
       )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: false,
-          json: () => Promise.resolve({ error: 'Failed to save formats' }),
-        } as Response)
-      )
+    // simulate failing mutate
+    mutateMock = vi.fn(() => Promise.resolve({ ok: false, error: 'Failed to save formats' }))
+
+    // keep fetch fallback
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ error: 'Failed to save formats' }),
+      } as Response)
+    )
 
     render(
       <LocalizationProvider>
