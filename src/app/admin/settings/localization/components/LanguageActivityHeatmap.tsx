@@ -258,8 +258,8 @@ export const LanguageActivityHeatmap: React.FC = () => {
             aria-label="Region filter"
           >
             <option value="all">All regions</option>
-            {(data?.meta?.availableRegions || ['unknown']).map((r: string) => (
-              <option key={r} value={r}>{r.toUpperCase()}</option>
+            {(((data as any)?.meta?.availableRegions as any[]) || ['unknown']).map((r: any) => (
+              <option key={String(r)} value={String(r)}>{String(r).toUpperCase()}</option>
             ))}
           </select>
 
