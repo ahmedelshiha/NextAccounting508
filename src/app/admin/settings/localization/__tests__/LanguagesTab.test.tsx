@@ -134,11 +134,11 @@ describe('LanguagesTab', () => {
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mutateMock).toHaveBeenCalledWith(
         '/api/admin/languages',
-        expect.objectContaining({
-          method: 'POST',
-        })
+        'POST',
+        expect.objectContaining({ code: 'fr' }),
+        expect.objectContaining({ invalidate: expect.any(Array) })
       )
     })
   })
@@ -193,11 +193,11 @@ describe('LanguagesTab', () => {
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mutateMock).toHaveBeenCalledWith(
         '/api/admin/languages',
-        expect.objectContaining({
-          method: 'POST',
-        })
+        'POST',
+        expect.objectContaining({ code: 'fr' }),
+        expect.objectContaining({ invalidate: expect.any(Array) })
       )
     })
   })
