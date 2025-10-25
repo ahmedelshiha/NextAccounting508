@@ -36,7 +36,8 @@ export function useFormMutation() {
       if (options.invalidate && options.invalidate.length) {
         options.invalidate.forEach(pattern => {
           try {
-            globalInvalidateCache(pattern)
+            // apiCache.deletePattern accepts string or RegExp
+            apiCache.deletePattern(typeof pattern === 'string' ? pattern : pattern)
           } catch (e) {
             // ignore
           }
