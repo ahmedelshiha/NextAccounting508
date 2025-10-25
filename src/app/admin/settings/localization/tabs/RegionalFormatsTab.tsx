@@ -194,197 +194,235 @@ export const RegionalFormatsTab: React.FC = () => {
     return <div className="text-gray-600 py-8 text-center">Loading formats...</div>
   }
 
+  const enabledLanguages = languages.filter(l => l.enabled)
+  const currentLanguage = enabledLanguages.find(l => l.code === selectedLanguage)
+
+  if (!currentLanguage) {
+    return <div className="text-gray-600 py-8 text-center">No enabled languages available</div>
+  }
+
   return (
     <div className="space-y-6">
       <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
         <div className="rounded-lg border bg-blue-50 p-4">
           <p className="text-sm text-blue-900">
-            💡 Select a template below to quickly apply standard format configurations for common locales.
+            💡 Select a language to configure regional formats and apply templates.
           </p>
         </div>
 
-        <div className="space-y-6">
-          {languages.filter(l => l.enabled).map(lang => {
-            const format = formats[lang.code] || REGIONAL_FORMAT_PRESETS[`${lang.code}-${lang.code.toUpperCase()}`] || {
-              dateFormat: 'MM/DD/YYYY',
-              timeFormat: 'HH:MM',
-              currencyCode: 'USD',
-              currencySymbol: '$',
-              numberFormat: '#,##0.00',
-              decimalSeparator: '.',
-              thousandsSeparator: ',',
-            }
+        <div className="rounded-lg border bg-white p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Select Language</label>
+              <select
+                value={selectedLanguage}
+                onChange={e => {
+                  setSelectedLanguage(e.target.value)
+                  setErrors({})
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              >
+                {enabledLanguages.map(lang => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.name} ({lang.nativeName})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            return (
-              <div key={lang.code} className="rounded-lg border bg-white p-6">
-                <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <span className="text-2xl">{lang.flag || '🌐'}</span>
-                  {lang.name} ({lang.nativeName})
-                </h4>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Copy From Another Language</label>
+              <select
+                defaultValue=""
+                onChange={e => {
+                  if (e.target.value) {
+                    copyFromLanguage(e.target.value, selectedLanguage)
+                    e.target.value = ''
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              >
+                <option value="">Select a language to copy from...</option>
+                {enabledLanguages.filter(l => l.code !== selectedLanguage).map(lang => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date Format</label>
-                    <input
-                      type="text"
-                      value={format.dateFormat}
-                      onChange={e =>
-                        setFormats(prev => ({
-                          ...prev,
-                          [lang.code]: { ...format, dateFormat: e.target.value },
-                        }))
-                      }
-                      placeholder="MM/DD/YYYY"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                    <p className="text-xs text-gray-600 mt-1">e.g., MM/DD/YYYY, DD/MM/YYYY</p>
-                  </div>
+          <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <span className="text-2xl">{currentLanguage.flag || '🌐'}</span>
+            {currentLanguage.name} ({currentLanguage.nativeName})
+          </h4>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Time Format</label>
-                    <input
-                      type="text"
-                      value={format.timeFormat}
-                      onChange={e =>
-                        setFormats(prev => ({
-                          ...prev,
-                          [lang.code]: { ...format, timeFormat: e.target.value },
-                        }))
-                      }
-                      placeholder="HH:MM"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                    <p className="text-xs text-gray-600 mt-1">e.g., HH:MM, HH:MM AM</p>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date Format</label>
+              <input
+                type="text"
+                value={format.dateFormat}
+                onChange={e => {
+                  setFormats(prev => ({
+                    ...prev,
+                    [selectedLanguage]: { ...format, dateFormat: e.target.value },
+                  }))
+                  if (errors.dateFormat) setErrors(e => ({ ...e, dateFormat: '' }))
+                }}
+                placeholder="MM/DD/YYYY"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${errors.dateFormat ? 'border-red-500' : 'border-gray-300'}`}
+              />
+              {errors.dateFormat && <p className="text-xs text-red-600 mt-1">{errors.dateFormat}</p>}
+              <p className="text-xs text-gray-600 mt-1">e.g., MM/DD/YYYY, DD/MM/YYYY</p>
+            </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Currency Code</label>
-                    <input
-                      type="text"
-                      value={format.currencyCode}
-                      onChange={e =>
-                        setFormats(prev => ({
-                          ...prev,
-                          [lang.code]: { ...format, currencyCode: e.target.value },
-                        }))
-                      }
-                      placeholder="USD"
-                      maxLength={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm uppercase"
-                    />
-                    <p className="text-xs text-gray-600 mt-1">ISO 4217 code</p>
-                  </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Time Format</label>
+              <input
+                type="text"
+                value={format.timeFormat}
+                onChange={e => {
+                  setFormats(prev => ({
+                    ...prev,
+                    [selectedLanguage]: { ...format, timeFormat: e.target.value },
+                  }))
+                  if (errors.timeFormat) setErrors(e => ({ ...e, timeFormat: '' }))
+                }}
+                placeholder="HH:MM"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${errors.timeFormat ? 'border-red-500' : 'border-gray-300'}`}
+              />
+              {errors.timeFormat && <p className="text-xs text-red-600 mt-1">{errors.timeFormat}</p>}
+              <p className="text-xs text-gray-600 mt-1">e.g., HH:MM, HH:MM AM</p>
+            </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Currency Symbol</label>
-                    <input
-                      type="text"
-                      value={format.currencySymbol}
-                      onChange={e =>
-                        setFormats(prev => ({
-                          ...prev,
-                          [lang.code]: { ...format, currencySymbol: e.target.value },
-                        }))
-                      }
-                      placeholder="$"
-                      maxLength={5}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                    <p className="text-xs text-gray-600 mt-1">e.g., $, €, ₹, د.إ</p>
-                  </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Currency Code</label>
+              <input
+                type="text"
+                value={format.currencyCode}
+                onChange={e => {
+                  setFormats(prev => ({
+                    ...prev,
+                    [selectedLanguage]: { ...format, currencyCode: e.target.value },
+                  }))
+                  if (errors.currencyCode) setErrors(e => ({ ...e, currencyCode: '' }))
+                }}
+                placeholder="USD"
+                maxLength={3}
+                className={`w-full px-3 py-2 border rounded-md text-sm uppercase ${errors.currencyCode ? 'border-red-500' : 'border-gray-300'}`}
+              />
+              {errors.currencyCode && <p className="text-xs text-red-600 mt-1">{errors.currencyCode}</p>}
+              <p className="text-xs text-gray-600 mt-1">ISO 4217 code</p>
+            </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Decimal Separator</label>
-                    <input
-                      type="text"
-                      value={format.decimalSeparator}
-                      onChange={e =>
-                        setFormats(prev => ({
-                          ...prev,
-                          [lang.code]: { ...format, decimalSeparator: e.target.value },
-                        }))
-                      }
-                      placeholder="."
-                      maxLength={1}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                    <p className="text-xs text-gray-600 mt-1">Usually . or ,</p>
-                  </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Currency Symbol</label>
+              <input
+                type="text"
+                value={format.currencySymbol}
+                onChange={e => {
+                  setFormats(prev => ({
+                    ...prev,
+                    [selectedLanguage]: { ...format, currencySymbol: e.target.value },
+                  }))
+                  if (errors.currencySymbol) setErrors(e => ({ ...e, currencySymbol: '' }))
+                }}
+                placeholder="$"
+                maxLength={5}
+                className={`w-full px-3 py-2 border rounded-md text-sm ${errors.currencySymbol ? 'border-red-500' : 'border-gray-300'}`}
+              />
+              {errors.currencySymbol && <p className="text-xs text-red-600 mt-1">{errors.currencySymbol}</p>}
+              <p className="text-xs text-gray-600 mt-1">e.g., $, €, ₹, د.إ</p>
+            </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Thousands Separator</label>
-                    <input
-                      type="text"
-                      value={format.thousandsSeparator}
-                      onChange={e =>
-                        setFormats(prev => ({
-                          ...prev,
-                          [lang.code]: { ...format, thousandsSeparator: e.target.value },
-                        }))
-                      }
-                      placeholder=","
-                      maxLength={1}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                    <p className="text-xs text-gray-600 mt-1">Usually , or .</p>
-                  </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Decimal Separator</label>
+              <input
+                type="text"
+                value={format.decimalSeparator}
+                onChange={e => {
+                  setFormats(prev => ({
+                    ...prev,
+                    [selectedLanguage]: { ...format, decimalSeparator: e.target.value },
+                  }))
+                }}
+                placeholder="."
+                maxLength={1}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <p className="text-xs text-gray-600 mt-1">Usually . or ,</p>
+            </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Number Format</label>
-                    <input
-                      type="text"
-                      value={format.numberFormat}
-                      onChange={e =>
-                        setFormats(prev => ({
-                          ...prev,
-                          [lang.code]: { ...format, numberFormat: e.target.value },
-                        }))
-                      }
-                      placeholder="#,##0.00"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                    <p className="text-xs text-gray-600 mt-1">Symbolic format</p>
-                  </div>
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Thousands Separator</label>
+              <input
+                type="text"
+                value={format.thousandsSeparator}
+                onChange={e => {
+                  setFormats(prev => ({
+                    ...prev,
+                    [selectedLanguage]: { ...format, thousandsSeparator: e.target.value },
+                  }))
+                }}
+                placeholder=","
+                maxLength={1}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <p className="text-xs text-gray-600 mt-1">Usually , or .</p>
+            </div>
 
-                {/* Preview */}
-                <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
-                  <p className="text-xs text-gray-600 mb-1">Preview:</p>
-                  <code className="text-sm text-gray-900">{getPreviewText(lang.code)}</code>
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Number Format</label>
+              <input
+                type="text"
+                value={format.numberFormat}
+                onChange={e => {
+                  setFormats(prev => ({
+                    ...prev,
+                    [selectedLanguage]: { ...format, numberFormat: e.target.value },
+                  }))
+                  if (errors.numberFormat) setErrors(e => ({ ...e, numberFormat: '' }))
+                }}
+                placeholder="#,##0.00"
+                className={`w-full px-3 py-2 border rounded-md text-sm ${errors.numberFormat ? 'border-red-500' : 'border-gray-300'}`}
+              />
+              {errors.numberFormat && <p className="text-xs text-red-600 mt-1">{errors.numberFormat}</p>}
+              <p className="text-xs text-gray-600 mt-1">Symbolic format</p>
+            </div>
+          </div>
 
-                {/* Templates */}
-                <div className="mb-4">
-                  <p className="text-xs font-semibold text-gray-600 mb-2">Quick Templates</p>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.keys(REGIONAL_FORMAT_PRESETS)
-                      .filter(key => key.startsWith(lang.code))
-                      .slice(0, 3)
-                      .map(key => (
-                        <button
-                          key={key}
-                          onClick={() => applyTemplate(lang.code, key)}
-                          className="px-3 py-1 text-xs rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
-                        >
-                          {key}
-                        </button>
-                      ))}
-                  </div>
-                </div>
+          <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
+            <p className="text-xs text-gray-600 mb-1">Preview:</p>
+            <code className="text-sm text-gray-900">{getPreviewText(selectedLanguage)}</code>
+          </div>
 
-                {/* Save Button */}
-                <div className="flex justify-end">
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-gray-600 mb-2">Quick Templates</p>
+            <div className="flex flex-wrap gap-2">
+              {Object.keys(REGIONAL_FORMAT_PRESETS)
+                .filter(key => key.startsWith(selectedLanguage))
+                .map(key => (
                   <button
-                    onClick={() => saveFormat(lang.code)}
-                    disabled={saving}
-                    className="px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+                    key={key}
+                    onClick={() => applyTemplate(selectedLanguage, key)}
+                    className="px-3 py-1 text-xs rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
                   >
-                    {saving ? 'Saving...' : 'Save Format'}
+                    {key}
                   </button>
-                </div>
-              </div>
-            )
-          })}
+                ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={() => saveFormat(selectedLanguage)}
+              disabled={saving}
+              className="px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+            >
+              {saving ? 'Saving...' : 'Save Format'}
+            </button>
+          </div>
         </div>
       </PermissionGate>
     </div>
