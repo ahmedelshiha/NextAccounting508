@@ -492,6 +492,131 @@ export const IntegrationTab: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Webhook Configuration Section */}
+        {webhookConfig && (
+          <div className="rounded-lg border bg-white p-6">
+            <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => setShowWebhookDetails(!showWebhookDetails)}>
+              <div className="flex items-center gap-3">
+                <h4 className="font-semibold text-gray-900">Webhook Configuration</h4>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${webhookEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                  {webhookEnabled ? '● Active' : '○ Inactive'}
+                </span>
+              </div>
+              <button
+                className="text-gray-600 hover:text-gray-900 transition-transform"
+                style={{ transform: showWebhookDetails ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              >
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+
+            {showWebhookDetails && (
+              <div className="space-y-4">
+                {/* Webhook URL Section */}
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle className="h-4 w-4 text-blue-600" />
+                    <p className="text-sm font-medium text-blue-900">Webhook URL</p>
+                  </div>
+                  <p className="text-xs text-blue-700 mb-3">Copy this URL to your Crowdin project webhook settings to receive automatic translation notifications</p>
+
+                  <div className="flex gap-2">
+                    <div className="flex-1 rounded-lg border border-blue-300 bg-white p-3">
+                      <code className="text-xs text-gray-700 break-all">{webhookConfig.webhookUrl}</code>
+                    </div>
+                    <button
+                      onClick={copyWebhookUrl}
+                      disabled={saving}
+                      className="px-3 py-2 rounded-lg border border-blue-300 text-blue-600 bg-white hover:bg-blue-50 disabled:opacity-50 transition-colors flex items-center gap-2"
+                    >
+                      {copiedWebhookUrl ? (
+                        <>
+                          <Check className="h-4 w-4" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Setup Instructions */}
+                <div className="rounded-lg border bg-gray-50 p-4">
+                  <h5 className="text-sm font-medium text-gray-900 mb-3">Setup Instructions</h5>
+                  <ol className="space-y-2 text-sm text-gray-700">
+                    <li className="flex gap-3">
+                      <span className="font-semibold text-gray-900 flex-shrink-0">1.</span>
+                      <span>Go to your Crowdin project settings → Webhooks</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="font-semibold text-gray-900 flex-shrink-0">2.</span>
+                      <span>Click "Add new webhook"</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="font-semibold text-gray-900 flex-shrink-0">3.</span>
+                      <span>Paste the URL above in the "Target URL" field</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="font-semibold text-gray-900 flex-shrink-0">4.</span>
+                      <span>Select events: "Translation completed" and "Translation updated"</span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="font-semibold text-gray-900 flex-shrink-0">5.</span>
+                      <span>Save the webhook</span>
+                    </li>
+                  </ol>
+                </div>
+
+                {/* Webhook Status */}
+                <div className="rounded-lg border bg-white p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs font-semibold text-gray-600 uppercase mb-2">Webhook Status</p>
+                      <label className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={webhookEnabled}
+                          onChange={() => setupWebhook()}
+                          disabled={saving}
+                          className="w-4 h-4 text-blue-600 rounded"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {webhookEnabled ? 'Webhook is active' : 'Webhook is inactive'}
+                        </span>
+                      </label>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-600 uppercase mb-2">Last Delivery</p>
+                      <p className="text-sm text-gray-700">
+                        {webhookConfig.lastDelivery ? new Date(webhookConfig.lastDelivery).toLocaleString() : 'Never'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {webhookConfig.deliveriesCount > 0 && (
+                    <p className="text-xs text-gray-600 mt-3">
+                      Total deliveries: {webhookConfig.deliveriesCount}
+                    </p>
+                  )}
+                </div>
+
+                {/* Test Webhook Delivery */}
+                <button
+                  onClick={testWebhookDelivery}
+                  disabled={!webhookEnabled || saving || crowdinTestLoading}
+                  className="w-full px-4 py-2 rounded-lg border border-blue-300 text-blue-600 bg-blue-50 hover:bg-blue-100 disabled:opacity-50 transition-colors text-sm font-medium"
+                >
+                  {crowdinTestLoading ? 'Sending test delivery...' : 'Send Test Delivery'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </PermissionGate>
     </div>
   )
