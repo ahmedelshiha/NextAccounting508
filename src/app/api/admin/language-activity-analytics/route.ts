@@ -39,49 +39,21 @@ export function detectDeviceFromUA(ua?: string | null): string {
   return 'desktop'
 }
 
+import { lookupCountryISO } from '@/lib/country-map'
+
 export function normalizeCountryName(name: string): string | null {
   if (!name) return null
-  const n = String(name).trim().toLowerCase()
+  const n = String(name).trim()
+  const lower = n.toLowerCase()
   // If two-letter code, return as-is
-  if (/^[a-z]{2}$/.test(n)) return n
+  if (/^[a-z]{2}$/.test(lower)) return lower
 
-  const map: Record<string, string> = {
-    'united states': 'us',
-    'united states of america': 'us',
-    'usa': 'us',
-    'united kingdom': 'gb',
-    'uk': 'gb',
-    'great britain': 'gb',
-    'saudi arabia': 'sa',
-    'kingdom of saudi arabia': 'sa',
-    'india': 'in',
-    'china': 'cn',
-    'australia': 'au',
-    'germany': 'de',
-    'france': 'fr',
-    'spain': 'es',
-    'portugal': 'pt',
-    'japan': 'jp',
-    'korea': 'kr',
-    'south korea': 'kr',
-    'republic of korea': 'kr',
-    'netherlands': 'nl',
-    'poland': 'pl',
-    'russia': 'ru',
-    'turkey': 'tr',
-    'italy': 'it',
-    'brazil': 'br',
-    'canada': 'ca',
-    'mexico': 'mx'
-  }
+  const iso = lookupCountryISO(n)
+  if (iso) return iso
 
-  if (map[n]) return map[n]
-
-  // strip common suffixes and punctuation
-  const clean = n.replace(/[^a-z]/g, '')
-  if (map[clean]) return map[clean]
-
-  return null
+  // fallback: remove punctuation and try again
+  const clean = lower.replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim()
+  return lookupCountryISO(clean)
 }
 
 export function regionFromProfile(profile: any): string {
