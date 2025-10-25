@@ -74,17 +74,18 @@ export function useCache() {
       }
     }
 
-    // Make the actual request
-    const fetchPromise = fetch(url, {
-      ...fetchOptions,
-      method,
-    }).then(async (response) => {
-      const data = await response.json() as T
-      if (!response.ok) {
-        throw new Error((data as any)?.error || `HTTP ${response.status}`)
+    // Make the actual request (with timeout and standardized errors)
+    const { fetchWithTimeout } = useFetchWithTimeout()
+    const fetchPromise = (async () => {
+      const result = await fetchWithTimeout<T>(url, {
+        ...fetchOptions,
+        method,
+      })
+      if (!result.ok) {
+        throw new Error(result.error || 'Request failed')
       }
-      return data
-    })
+      return result.data as T
+    })()
 
     // Track in-flight request for deduplication
     if (method === 'GET' && !bypassCache) {
