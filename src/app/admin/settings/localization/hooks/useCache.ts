@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react'
 import { apiCache, generateCacheKey, generateCacheKeyWithMethod } from '../utils/cache'
+import { useFetchWithTimeout } from './useFetchWithTimeout'
 
 interface UseCacheOptions {
   ttlMs?: number // Time to live in milliseconds (default 5 minutes)
