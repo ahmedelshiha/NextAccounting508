@@ -80,6 +80,93 @@ export const DiscoveryTab: React.FC = () => {
     }
   }
 
+  function toggleKeyApproval(key: string) {
+    const newApproved = new Set(approvedKeys)
+    if (newApproved.has(key)) {
+      newApproved.delete(key)
+    } else {
+      newApproved.add(key)
+    }
+    setApprovedKeys(newApproved)
+  }
+
+  function exportResults(format: 'json' | 'csv') {
+    if (!auditResults) return
+
+    if (format === 'json') {
+      const data = JSON.stringify(auditResults, null, 2)
+      const blob = new Blob([data], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `discovery-audit-${new Date().toISOString().split('T')[0]}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Audit results exported as JSON')
+    } else {
+      const rows = [['Type', 'Key', 'Value']]
+
+      auditResults.orphanedKeys.forEach(key => {
+        rows.push(['Orphaned Key', key, ''])
+      })
+
+      Object.entries(auditResults.missingTranslations).forEach(([lang, keys]) => {
+        keys.forEach(key => {
+          rows.push(['Missing Translation', key, lang])
+        })
+      })
+
+      auditResults.namingIssues.forEach(issue => {
+        rows.push(['Naming Issue', issue.key, issue.issue])
+      })
+
+      const csv = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `discovery-audit-${new Date().toISOString().split('T')[0]}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Audit results exported as CSV')
+    }
+  }
+
+  async function bulkAddApprovedKeys() {
+    if (approvedKeys.size === 0) {
+      toast.error('No keys selected for approval')
+      return
+    }
+
+    setBulkAddLoading(true)
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+      const keysArray = Array.from(approvedKeys)
+      const r = await fetch('/api/admin/translations/discover/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keys: keysArray }),
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+
+      if (r.ok) {
+        const approvedCount = keysArray.length
+        toast.success(`Added ${approvedCount} key(s) to translation system`)
+        setApprovedKeys(new Set())
+      } else {
+        toast.error('Failed to add keys')
+      }
+    } catch (e: any) {
+      const message = e?.name === 'AbortError' ? 'Request timed out' : e.message || 'Failed to add keys'
+      toast.error(message)
+    } finally {
+      setBulkAddLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
