@@ -13,13 +13,13 @@ export const OrganizationTab: React.FC = () => {
     orgSettings,
     setOrgSettings,
     languages,
-    loading,
-    setLoading,
     saving,
     setSaving,
     error,
     setError,
   } = useLocalizationContext()
+
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadOrgSettings()
