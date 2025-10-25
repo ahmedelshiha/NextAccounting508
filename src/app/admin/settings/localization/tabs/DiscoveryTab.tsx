@@ -326,6 +326,29 @@ export const DiscoveryTab: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {/* Bulk Add Approved Keys */}
+            {approvedKeys.size > 0 && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Check className="h-5 w-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium text-blue-900">{approvedKeys.size} key(s) selected</p>
+                      <p className="text-sm text-blue-800">Ready to add to translation system</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={bulkAddApprovedKeys}
+                    disabled={bulkAddLoading || saving}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 font-medium"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {bulkAddLoading ? 'Adding...' : 'Add Keys'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
