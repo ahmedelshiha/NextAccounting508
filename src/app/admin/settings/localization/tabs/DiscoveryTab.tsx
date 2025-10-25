@@ -20,6 +20,8 @@ export const DiscoveryTab: React.FC = () => {
   const [auditRunning, setAuditRunning] = useState(false)
   const [auditResults, setAuditResults] = useState<AuditResult | null>(null)
   const [scheduledAudit, setScheduledAudit] = useState<'none' | 'daily' | 'weekly'>('none')
+  const [approvedKeys, setApprovedKeys] = useState<Set<string>>(new Set())
+  const [bulkAddLoading, setBulkAddLoading] = useState(false)
 
   async function runDiscoveryAudit() {
     setAuditRunning(true)
