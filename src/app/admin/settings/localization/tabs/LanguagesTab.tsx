@@ -9,6 +9,7 @@ import { TextField, SelectField, Toggle } from '@/components/admin/settings/Form
 import { toast } from 'sonner'
 import { Plus, Trash2, Download, Upload, Star, Edit2 } from 'lucide-react'
 import { useCache, invalidateLanguageCaches } from '../hooks/useCache'
+import { useFormMutation } from '../hooks/useFormMutation'
 import type { LanguageRow } from '../types'
 
 export const LanguagesTab: React.FC = () => {
