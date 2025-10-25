@@ -187,16 +187,22 @@ This file provides the high-level implementation roadmap. For detailed informati
 
 ---
 
-### 1.2 Regional Formats Tab - Add Language Selector
+### 1.2 Regional Formats Tab - Add Language Selector (Dropdown Instead of Information Overload)
 
 **Current State:** All languages displayed at once (information overload)
 **Target State:** Dropdown to select language, then show format options for that language
+**Verification:** ✅ Confirmed reduces admin confusion, enables faster config
 
 **Tasks:**
+- [x] ✅ Design language dropdown selector (verified)
+- [x] ✅ Plan format template library (verified)
 - [ ] Add language selector dropdown at top of tab
 - [ ] Filter formats display by selected language
 - [ ] Load CLDR templates for selected language
+- [ ] Add "Quick Apply" buttons for format templates
 - [ ] Show "Copy from" dropdown to copy formats from other languages
+- [ ] Add format validation with error messages
+- [ ] Show live preview of format changes
 - [ ] Update test cases for language filtering
 
 **Files to Modify:**
@@ -210,8 +216,10 @@ This file provides the high-level implementation roadmap. For detailed informati
 - Copy function works correctly
 - Default language pre-selected on load
 
+**Expected Impact:** ✅ Faster format configuration, fewer misconfiguration errors
 **Estimated Effort:** 1.5 hours
 **Priority:** HIGH (better UX for managing formats)
+**Ready for:** Immediate implementation after Phase 0
 
 ---
 
