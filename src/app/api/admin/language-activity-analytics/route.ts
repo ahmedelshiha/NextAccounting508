@@ -125,7 +125,7 @@ export async function handler(request: Request) {
       },
     })
 
-    const userIds = Array.from(new Set(auditLogs.map(a => a.userId).filter(Boolean)))
+    const userIds = Array.from(new Set(auditLogs.map(a => a.userId).filter((id): id is string => Boolean(id))))
 
     const profiles = await prisma.userProfile.findMany({
       where: {
