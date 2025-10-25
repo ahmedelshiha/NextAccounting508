@@ -231,7 +231,7 @@ export const LanguageActivityHeatmap: React.FC = () => {
               className="border rounded p-1 text-sm max-w-[180px]"
               aria-label="Select languages to include"
             >
-              {Array.from(new Set(period.data.map(d => d.language))).sort().map(code => (
+              {languageList.map((code: string) => (
                 <option key={code} value={code}>
                   {getLanguageDisplay(code).name}
                 </option>
