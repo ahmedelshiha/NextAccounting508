@@ -1,7 +1,7 @@
 # Localization Admin Settings - Comprehensive Enhancement Plan
 
-**Status:** ✅ **PRODUCTION READY** | ✅ **PHASE 0-2 COMPLETE** | 🚀 **PHASE 3 IN PROGRESS**
-**Last Updated:** 2025-10-27
+**Status:** ✅ **PRODUCTION READY** | ✅ **PHASE 0-3 COMPLETE** | 🚀 **PHASE 4 IN PROGRESS**
+**Last Updated:** 2025-10-25
 **Owner:** Admin Settings Team
 **Audit Reference:** See `docs/admin/settings/localization/AUDIT_REPORT.md` for detailed findings
 
@@ -790,7 +790,7 @@ All core functionality and initial enhancements are **PRODUCTION READY**. PHASE 
    - Pattern-based cache invalidation for bulk operations
    - Hook: `useCache()` in `src/app/admin/settings/localization/hooks/useCache.ts`
 
-2. **Request Deduplication** ✅
+2. **Request Deduplication** ���
    - Built into `cachedFetch()` via in-flight request tracking
    - Prevents duplicate requests when tabs are switched rapidly
    - Returns same promise for identical requests made simultaneously
@@ -1224,7 +1224,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌───────────────────────────────��────────┐
+┌──���────────────────────────────��────────┐
 │ User Language Control                  │
 ├──────���────────��────────────────────────���
 │ Total Users: 5,432                     │
@@ -1303,6 +1303,13 @@ Heatmap: [Language usage over last 30 days]
 
 ## 📜 Action Log
 
+- ✅ 2025-10-25: Added standardized fetch timeout and integrated across cache layer.
+  - Summary: Created useFetchWithTimeout hook with AbortController-based timeouts and standardized error handling. Integrated into useCache to ensure all cached requests benefit from timeouts and consistent errors without changing tab call sites.
+  - Files Modified/Added:
+    - src/app/admin/settings/localization/hooks/useFetchWithTimeout.ts (new)
+    - src/app/admin/settings/localization/hooks/useCache.ts (switched to fetchWithTimeout)
+  - Testing: Manual smoke across Languages, Organization, Regional Formats, and Integration tabs under throttled network; verified no regressions and improved failure behavior on slow endpoints.
+
 - ✅ 2025-10-26: Implemented Crowdin integration logs endpoint and enhanced IntegrationTab UI.
   - Summary: Added GET /api/admin/crowdin-integration/logs endpoint for sync history retrieval. Enhanced IntegrationTab with:
     1. Project Health section showing Crowdin completion % per language
@@ -1361,7 +1368,7 @@ Heatmap: [Language usage over last 30 days]
 │                                     │
 │ Project Health:                     │
 │ English (base):    100%             │
-│ Arabic:             89% ████████░   │
+│ Arabic:             89% █████��██░   │
 │ Hindi:              76% ███████░░░  │
 │                                     │
 │ ☑ Create PR for new translations    │
@@ -1528,7 +1535,7 @@ Heatmap: [Language usage over last 30 days]
 │                                     │
 │ ✗ Missing Translations (Arabic):    │
 │ • dashboard.new_metric              │
-│ • settings.privacy_notice           │
+│ �� settings.privacy_notice           │
 │                                     │
 │ ✗ Missing Translations (Hindi):     │
 │ • payment.confirmation              │
