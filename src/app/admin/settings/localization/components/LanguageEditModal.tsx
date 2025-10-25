@@ -138,7 +138,7 @@ export const LanguageEditModal: React.FC<LanguageEditModalProps> = ({
                   }}
                   placeholder="e.g. fr"
                   error={errors.code}
-                  disabled={!useCustom && !language && formData.code}
+                  disabled={!useCustom && !language && !!formData.code}
                 />
                 <p className="text-xs text-gray-600 mt-1">2-3 letter code (lowercase)</p>
               </div>
