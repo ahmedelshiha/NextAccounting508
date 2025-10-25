@@ -69,7 +69,7 @@ export interface AnalyticsData {
   }>
 }
 
-export type TabKey = 'languages' | 'organization' | 'user-preferences' | 'regional' | 'integration' | 'translations' | 'analytics' | 'discovery'
+export type TabKey = 'languages' | 'organization' | 'user-preferences' | 'regional' | 'integration' | 'translations' | 'analytics' | 'discovery' | 'heatmap'
 
 export interface TabDefinition {
   key: TabKey
