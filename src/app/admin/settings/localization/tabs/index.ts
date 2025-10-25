@@ -7,6 +7,7 @@ import { IntegrationTab as IntegrationTabComponent } from './IntegrationTab'
 import { TranslationsTab as TranslationsTabComponent } from './TranslationsTab'
 import { AnalyticsTab as AnalyticsTabComponent } from './AnalyticsTab'
 import { DiscoveryTab as DiscoveryTabComponent } from './DiscoveryTab'
+import { HeatmapTab as HeatmapTabComponent } from './HeatmapTab'
 
 // Memoize tab components to prevent unnecessary re-renders
 export const LanguagesTab = React.memo(LanguagesTabComponent)
