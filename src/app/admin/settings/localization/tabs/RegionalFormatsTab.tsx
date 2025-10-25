@@ -32,6 +32,12 @@ export const RegionalFormatsTab: React.FC = () => {
     loadFormats()
   }, [])
 
+  useEffect(() => {
+    if (!selectedLanguage && languages.filter(l => l.enabled).length > 0) {
+      setSelectedLanguage(languages.filter(l => l.enabled)[0].code)
+    }
+  }, [languages, selectedLanguage])
+
   async function loadFormats() {
     try {
       setLoading(true)
