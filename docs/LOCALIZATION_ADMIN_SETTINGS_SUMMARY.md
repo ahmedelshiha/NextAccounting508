@@ -658,13 +658,13 @@ This file provides the high-level implementation roadmap. For detailed informati
 │       └─ Chart library code splitting                          │
 │                                                                 │
 │ WEEK 4:   PHASE 4 - CODE QUALITY (2-3 hours effort)             │
-│       └─ Extract useFetchWithTimeout                           │
+│       └��� Extract useFetchWithTimeout                           │
 │       └─ Extract common form patterns                          │
 │                                                                 │
 │ FUTURE:   PHASE 5 - ADVANCED FEATURES (5-7 hours effort)        │
 │       └─ Bulk user assignment                                  │
 │       └─ Activity heatmaps                                     │
-│       └─ Translation priorities                                ���
+│       └─ Translation priorities                                │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -1155,7 +1155,7 @@ src/app/admin/settings/localization/
 │ en   │ English   │ ✓ On  │ ⭐      │
 │ ar   │ العربي��   │ ✓ On  │ ⭐      │
 │ fr   │ Français  │ ✗ Off │         │
-��─────┴──────────┴────�����───┴─────────┘
+��─────┴──────────┴────���───┴─────────┘
 
 Heatmap: [Language usage over last 30 days]
 ```
@@ -1276,7 +1276,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌──────────────────��──────────────────��
+┌─────────────────────────────────────��
 │ Regional Formats                    │
 ├─────���─────────────────���─────────────┤
 │ English (en-US)                    │
@@ -1309,6 +1309,15 @@ Heatmap: [Language usage over last 30 days]
 ---
 
 ## 📜 Action Log
+
+- ✅ 2025-10-27: Refactored OrganizationTab & RegionalFormatsTab to use centralized mutation helper.
+  - Summary: Replaced inline fetch/AbortController usage in OrganizationTab and RegionalFormatsTab with the `useFormMutation` helper to standardize timeouts, JSON serialization, error handling, and cache invalidation. Preserved existing validation logic and UI behavior.
+  - Files Modified/Added:
+    - src/app/admin/settings/localization/hooks/useFormMutation.ts (new)
+    - src/app/admin/settings/localization/tabs/LanguagesTab.tsx (refactored)
+    - src/app/admin/settings/localization/tabs/OrganizationTab.tsx (refactored)
+    - src/app/admin/settings/localization/tabs/RegionalFormatsTab.tsx (refactored)
+  - Testing: Static review + manual smoke of save/toggle/delete/import flows across Languages, Organization, and Regional Formats. No regressions observed.
 
 - ✅ 2025-10-25: Added standardized fetch timeout and integrated across cache layer.
   - Summary: Created useFetchWithTimeout hook with AbortController-based timeouts and standardized error handling. Integrated into useCache to ensure all cached requests benefit from timeouts and consistent errors without changing tab call sites.
@@ -1360,7 +1369,7 @@ Heatmap: [Language usage over last 30 days]
 - ✅ **NEW: Webhook setup** (Crowdin → website auto-push)
 - ✅ **NEW: Sync status dashboard** (last sync time, next scheduled)
 - ✅ **NEW: Crowdin project health** (% complete per language)
-- ��� **NEW: Create review PRs** (auto-generate translation PRs)
+- ✅ **NEW: Create review PRs** (auto-generate translation PRs)
 - ✅ **NEW: Sync log viewer** (audit trail of all syncs)
 
 **Admin Controls:**
@@ -1444,7 +1453,7 @@ Heatmap: [Language usage over last 30 days]
 │                                      │
 │ [View All Missing] [Assign Tasks]    │
 │ [Generate Report] [Set Priorities]   │
-└──────────────────────────────────��────┘
+└───────────────────────────────────────┘
 ```
 
 **API Endpoints:**
@@ -1476,7 +1485,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌────────────────────��────────────────┐
+┌─────────────────────────────────────┐
 │ Analytics                           │
 ├────────────────────────────────────���┤
 │ Time Period: [Last 30 Days ▼]       │
