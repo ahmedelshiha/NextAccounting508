@@ -164,12 +164,16 @@ describe('OrganizationTab', () => {
           json: () => Promise.resolve({ data: mockSettings }),
         } as Response)
       )
-      .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: false,
-          json: () => Promise.resolve({ error: 'Failed to save settings' }),
-        } as Response)
-      )
+    // Simulate mutate failing for save
+    mutateMock = vi.fn(() => Promise.resolve({ ok: false, error: 'Failed to save settings' }))
+
+    // Keep global.fetch second call as fallback (not used by mutate)
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ error: 'Failed to save settings' }),
+      } as Response)
+    )
 
     render(
       <LocalizationProvider>
