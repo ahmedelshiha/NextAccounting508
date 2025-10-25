@@ -18,7 +18,7 @@ export interface BulkLanguageAssignResponse {
   errors: string[]
 }
 
-export const POST = withTenantContext(async (request: Request) => {
+export const POST = async (request: Request) => {
   try {
     const ctx = requireTenantContext()
     
@@ -109,4 +109,4 @@ export const POST = withTenantContext(async (request: Request) => {
       { status: 500 }
     )
   }
-})
+}
