@@ -35,7 +35,7 @@ vi.mock('@/components/admin/settings/FormField', () => ({
   ),
 }))
 
-let mutateMock = vi.fn()
+let mutateMock = vi.fn(() => Promise.resolve({ ok: true, data: {} }))
 vi.mock('../hooks/useFormMutation', () => ({
   useFormMutation: () => ({
     saving: false,
