@@ -36,30 +36,10 @@ export const LanguageEditModal: React.FC<LanguageEditModalProps> = ({
 
   const [useCustom, setUseCustom] = useState(!language && !POPULAR_LANGUAGES.find(l => l.code === formData.code))
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const { validateLanguage } = useFormValidation()
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-
-    if (!formData.code.trim()) {
-      newErrors.code = 'Language code is required'
-    } else if (!/^[a-z]{2,3}(-[a-z]{2})?$/i.test(formData.code)) {
-      newErrors.code = 'Invalid language code format (e.g., "en" or "en-US")'
-    }
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'English name is required'
-    }
-
-    if (!formData.nativeName.trim()) {
-      newErrors.nativeName = 'Native name is required'
-    }
-
-    if (!formData.bcp47Locale.trim()) {
-      newErrors.bcp47Locale = 'BCP47 locale is required'
-    } else if (!/^[a-z]{2,3}(-[a-z]{2})?$/i.test(formData.bcp47Locale)) {
-      newErrors.bcp47Locale = 'Invalid BCP47 locale format (e.g., "en-US")'
-    }
-
+    const newErrors = validateLanguage(formData)
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
