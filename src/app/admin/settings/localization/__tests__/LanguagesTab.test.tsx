@@ -223,4 +223,56 @@ describe('LanguagesTab', () => {
       expect(global.URL.createObjectURL).toHaveBeenCalled()
     })
   })
+
+  test('allows editing existing language', async () => {
+    const user = userEvent.setup()
+    const mockLanguages = [
+      { code: 'fr', name: 'French', nativeName: 'Français', direction: 'ltr' as const, bcp47Locale: 'fr-FR', enabled: true, featured: false, flag: '🇫🇷' },
+    ]
+
+    global.fetch = vi.fn()
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: mockLanguages }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({}),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: mockLanguages }),
+        } as Response)
+      )
+
+    render(
+      <LocalizationProvider>
+        <LanguagesTab />
+      </LocalizationProvider>
+    )
+
+    const editButton = await screen.findByText(/Edit/i)
+    await user.click(editButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Edit Language')).toBeInTheDocument()
+    })
+
+    const updateButton = screen.getByRole('button', { name: /Update/i })
+    await user.click(updateButton)
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        `/api/admin/languages/fr`,
+        expect.objectContaining({
+          method: 'PUT',
+        })
+      )
+    })
+  })
 })
