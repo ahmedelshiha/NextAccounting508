@@ -200,7 +200,25 @@ export const DiscoveryTab: React.FC = () => {
         {/* Audit Results */}
         {auditResults && (
           <div className="rounded-lg border bg-white p-6 space-y-6">
-            <h3 className="text-lg font-semibold text-gray-900">Audit Results</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">Audit Results</h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => exportResults('json')}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <Download className="h-4 w-4" />
+                  Export JSON
+                </button>
+                <button
+                  onClick={() => exportResults('csv')}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <Download className="h-4 w-4" />
+                  Export CSV
+                </button>
+              </div>
+            </div>
 
             {/* Summary Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
