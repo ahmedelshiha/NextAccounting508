@@ -219,9 +219,9 @@ export const LanguageActivityHeatmap: React.FC = () => {
             aria-label="Device filter"
           >
             <option value="all">All devices</option>
-            <option value="desktop">Desktop</option>
-            <option value="mobile">Mobile</option>
-            <option value="tablet">Tablet</option>
+            {(data?.meta?.availableDevices || ['desktop','mobile','tablet','unknown']).map((d: string) => (
+              <option key={d} value={d}>{d[0].toUpperCase() + d.slice(1)}</option>
+            ))}
           </select>
 
           <select
@@ -231,7 +231,9 @@ export const LanguageActivityHeatmap: React.FC = () => {
             aria-label="Region filter"
           >
             <option value="all">All regions</option>
-            <option value="unknown">Unknown</option>
+            {(data?.meta?.availableRegions || ['unknown']).map((r: string) => (
+              <option key={r} value={r}>{r.toUpperCase()}</option>
+            ))}
           </select>
 
           {[7, 14, 30].map(days => (
