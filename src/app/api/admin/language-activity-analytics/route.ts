@@ -281,4 +281,4 @@ export async function handler(request: Request) {
   }
 }
 
-export const GET = withTenantContext(handler)
+export const GET = handler
