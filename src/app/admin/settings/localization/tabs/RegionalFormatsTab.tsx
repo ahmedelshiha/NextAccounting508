@@ -23,8 +23,10 @@ export const RegionalFormatsTab: React.FC = () => {
   const { languages, saving, setSaving } = useLocalizationContext()
   const [loading, setLoading] = useState(true)
   const [formats, setFormats] = useState<FormatState>({})
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('')
   const [previewDate] = useState(new Date(2025, 9, 21))
   const [previewNumber] = useState(1234.56)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     loadFormats()
