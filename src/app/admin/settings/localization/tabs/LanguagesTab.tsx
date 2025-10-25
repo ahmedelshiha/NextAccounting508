@@ -52,63 +52,35 @@ export const LanguagesTab: React.FC = () => {
     }
   }
 
-  async function createLanguage() {
+  async function saveLanguage(language: LanguageRow) {
     setSaving(true)
     setError(null)
     try {
-      const body = { ...newLang, code: newLang.code.toLowerCase() }
-      const r = await fetch('/api/admin/languages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to create language')
-      
-      setNewLang({
-        code: '',
-        name: '',
-        nativeName: '',
-        direction: 'ltr',
-        flag: '🌐',
-        bcp47Locale: '',
-        enabled: true,
-        featured: false,
-      })
-      setShowAddForm(false)
+      if (editingLanguage) {
+        const r = await fetch(`/api/admin/languages/${encodeURIComponent(editingLanguage.code)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(language),
+        })
+        const d = await r.json()
+        if (!r.ok) throw new Error(d?.error || 'Failed to update language')
+        toast.success('Language updated successfully')
+      } else {
+        const r = await fetch('/api/admin/languages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(language),
+        })
+        const d = await r.json()
+        if (!r.ok) throw new Error(d?.error || 'Failed to create language')
+        toast.success('Language added successfully')
+      }
+      setModalOpen(false)
+      setEditingLanguage(null)
       await loadLanguages()
-      toast.success('Language added successfully')
     } catch (e: any) {
-      setError(e?.message || 'Failed to create language')
-      toast.error(e?.message || 'Failed to create language')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function saveEdit(code: string) {
-    const changes = editing[code]
-    if (!changes) return
-    setSaving(true)
-    setError(null)
-    try {
-      const r = await fetch(`/api/admin/languages/${encodeURIComponent(code)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(changes),
-      })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to update language')
-      setEditing(prev => {
-        const next = { ...prev }
-        delete next[code]
-        return next
-      })
-      await loadLanguages()
-      toast.success('Language updated')
-    } catch (e: any) {
-      setError(e?.message || 'Failed to update language')
-      toast.error(e?.message || 'Failed to update language')
+      setError(e?.message || (editingLanguage ? 'Failed to update language' : 'Failed to create language'))
+      toast.error(e?.message || (editingLanguage ? 'Failed to update language' : 'Failed to create language'))
     } finally {
       setSaving(false)
     }
