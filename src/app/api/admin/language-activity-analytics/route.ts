@@ -31,7 +31,7 @@ export interface LanguageActivityResponse {
   }
 }
 
-function detectDeviceFromUA(ua?: string | null): string {
+export function detectDeviceFromUA(ua?: string | null): string {
   if (!ua) return 'unknown'
   const u = ua.toLowerCase()
   if (/ipad|tablet/.test(u)) return 'tablet'
@@ -39,12 +39,16 @@ function detectDeviceFromUA(ua?: string | null): string {
   return 'desktop'
 }
 
-function regionFromProfile(profile: any): string {
-  // Prefer explicit country in metadata, fall back to timezone region (e.g., 'America')
+export function regionFromProfile(profile: any): string {
   try {
     const meta = profile.metadata || {}
     if (meta && typeof meta === 'object') {
-      if (meta.country) return String(meta.country).toLowerCase()
+      // Accept ISO country codes (2-letter) or full country name; normalize to lower-case 2-letter where possible
+      if (meta.country) {
+        const c = String(meta.country).trim()
+        if (c.length === 2) return c.toLowerCase()
+        return c.toLowerCase()
+      }
     }
     if (profile.timezone && typeof profile.timezone === 'string') {
       const parts = profile.timezone.split('/')
@@ -56,7 +60,7 @@ function regionFromProfile(profile: any): string {
   return 'unknown'
 }
 
-export const GET = withTenantContext(async (request: Request) => {
+async function handler(request: Request) {
   try {
     const ctx = requireTenantContext()
 
@@ -98,12 +102,9 @@ export const GET = withTenantContext(async (request: Request) => {
         metadata: true,
         userAgent: true,
         userId: true,
-        // changes field may exist in metadata or changes depending on implementation
-        // include metadata only and use that for language info if present
       },
     })
 
-    // Collect userIds to fetch profiles for region info and fallback language
     const userIds = Array.from(new Set(auditLogs.map(a => a.userId).filter(Boolean)))
 
     const profiles = await prisma.userProfile.findMany({
@@ -121,9 +122,12 @@ export const GET = withTenantContext(async (request: Request) => {
     const profileByUserId = new Map<string, any>()
     profiles.forEach(p => profileByUserId.set(p.user.id, p))
 
-    // Build heatmap from audit logs (hourly aggregation)
     const heatmapData = new Map<string, Map<string, number>>()
     const usersByLanguage = new Map<string, Set<string>>()
+    const uniqueUsers = new Set<string>()
+    const availableDevices = new Set<string>()
+    const availableRegions = new Set<string>()
+    const availableLanguages = new Set<string>()
 
     function addEntry(ts: Date, lang: string, userId?: string | null) {
       const hour = new Date(ts)
@@ -135,21 +139,23 @@ export const GET = withTenantContext(async (request: Request) => {
       langMap.set(lang, (langMap.get(lang) || 0) + 1)
 
       if (userId) {
+        uniqueUsers.add(userId)
         if (!usersByLanguage.has(lang)) usersByLanguage.set(lang, new Set())
         usersByLanguage.get(lang)!.add(userId)
       }
+
+      availableLanguages.add(lang)
     }
 
     // Process audit logs
     for (const a of auditLogs) {
       const ua = a.userAgent || (a.metadata && a.metadata.userAgent) || null
       const device = detectDeviceFromUA(ua)
+      availableDevices.add(device)
 
-      // Determine language change from metadata if available
       let lang: string | null = null
       try {
         if (a.metadata && typeof a.metadata === 'object') {
-          // common shapes: { from: 'en', to: 'ar' } or { language: 'ar' }
           if (a.metadata.language) lang = String(a.metadata.language)
           else if (a.metadata.to) lang = String(a.metadata.to)
           else if (a.metadata.preferredLanguage) lang = String(a.metadata.preferredLanguage)
@@ -158,22 +164,21 @@ export const GET = withTenantContext(async (request: Request) => {
         lang = null
       }
 
-      // fallback to user's profile preferredLanguage
       const profile = a.userId ? profileByUserId.get(a.userId) : null
       if (!lang && profile) lang = profile.preferredLanguage || null
       if (!lang) lang = 'en'
 
-      // Apply filters: language/device/region
       if (languagesFilter && !languagesFilter.includes(lang)) continue
       if (deviceFilter !== 'all' && device !== deviceFilter) continue
 
       const region = profile ? regionFromProfile(profile) : 'unknown'
+      availableRegions.add(region)
       if (regionFilter !== 'all' && region !== regionFilter) continue
 
       addEntry(new Date(a.createdAt), lang, a.userId || undefined)
     }
 
-    // Additionally include snapshot of current user language preferences (as before) to ensure coverage
+    // Additionally include snapshot of current user language preferences
     const userLanguagePreferences = await prisma.userProfile.findMany({
       where: { user: { tenantId } },
       select: {
@@ -186,13 +191,13 @@ export const GET = withTenantContext(async (request: Request) => {
 
     for (const profile of userLanguagePreferences) {
       const lang = profile.preferredLanguage || 'en'
-      // apply language filter
       if (languagesFilter && !languagesFilter.includes(lang)) continue
 
-      // device unknown for snapshot entries; treat as 'unknown' and filter if needed
+      // device unknown for snapshot entries
       if (deviceFilter !== 'all' && deviceFilter !== 'unknown') continue
 
       const region = regionFromProfile(profile)
+      availableRegions.add(region)
       if (regionFilter !== 'all' && region !== regionFilter) continue
 
       const hour = new Date(profile.user.createdAt)
@@ -224,10 +229,10 @@ export const GET = withTenantContext(async (request: Request) => {
     }
 
     const totalSessions = hourlyData.reduce((s, d) => s + d.sessionCount, 0)
-    const totalUsers = new Set(hourlyData.map(d => `${d.language}::${d.timestamp}`)).size // approximate unique points
-    const languagesTracked = new Set(hourlyData.map(d => d.language)).size
+    const totalUsers = uniqueUsers.size
+    const languagesTracked = availableLanguages.size
 
-    const response: LanguageActivityResponse = {
+    const response: LanguageActivityResponse & { meta?: any } = {
       success: true,
       periods,
       dateRange: {
@@ -239,6 +244,11 @@ export const GET = withTenantContext(async (request: Request) => {
         totalUsers,
         languagesTracked,
       },
+      meta: {
+        availableDevices: Array.from(availableDevices),
+        availableRegions: Array.from(availableRegions),
+        availableLanguages: Array.from(availableLanguages),
+      },
     }
 
     return Response.json({ success: true, data: response }, { status: 200 })
@@ -249,4 +259,6 @@ export const GET = withTenantContext(async (request: Request) => {
       { status: 500 }
     )
   }
-})
+}
+
+export const GET = withTenantContext(handler)
