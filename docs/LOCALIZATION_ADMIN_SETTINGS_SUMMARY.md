@@ -800,7 +800,7 @@ All core functionality and initial enhancements are **PRODUCTION READY**. PHASE 
    - Pattern-based cache invalidation for bulk operations
    - Hook: `useCache()` in `src/app/admin/settings/localization/hooks/useCache.ts`
 
-2. **Request Deduplication** ���
+2. **Request Deduplication** �����
    - Built into `cachedFetch()` via in-flight request tracking
    - Prevents duplicate requests when tabs are switched rapidly
    - Returns same promise for identical requests made simultaneously
@@ -1115,7 +1115,7 @@ src/app/admin/settings/localization/
 │   ├── LanguageExportModal.tsx           # Bulk language export
 │   ├── RegionalFormatForm.tsx            # Format template editor
 │   ├── CrowdinSyncPanel.tsx              # Sync controls
-│   ├── TranslationCoverageChart.tsx      # Visual coverage stats
+│   ���── TranslationCoverageChart.tsx      # Visual coverage stats
 │   ��── KeyAuditResults.tsx               # Audit findings UI
 │   └── LanguageUsageChart.tsx            # Adoption trends
 │
@@ -1236,7 +1236,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌──���────────────────────────────��────────┐
 │ User Language Control                  │
-├──────���────────��────────────────────────�����
+├──────���────────��────────────────────────���
 │ Total Users: 5,432                     │
 │ Languages in Use: 7                    │
 │                                       │
@@ -1322,6 +1322,12 @@ Heatmap: [Language usage over last 30 days]
     - src/app/admin/settings/localization/tabs/RegionalFormatsTab.tsx (refactored)
   - Testing: Static review + manual smoke of save/toggle/delete/import flows across Languages, Organization, and Regional Formats. No regressions observed.
 
+- ✅ 2025-10-27: Fixed ESLint "rules-of-hooks" failure in useCache
+  - Summary: Removed a nested call to useFetchWithTimeout inside the cachedFetch callback. The hook is now called once at the top of useCache and the cachedFetch callback references the existing fetchWithTimeout. This resolves the build-time lint error.
+  - Files Modified:
+    - src/app/admin/settings/localization/hooks/useCache.ts (fixed hook usage)
+  - Testing: Verified lint rules reasoning; should pass CI lint stage.
+
 - ✅ 2025-10-25: Added standardized fetch timeout and integrated across cache layer.
   - Summary: Created useFetchWithTimeout hook with AbortController-based timeouts and standardized error handling. Integrated into useCache to ensure all cached requests benefit from timeouts and consistent errors without changing tab call sites.
   - Files Modified/Added:
@@ -1385,7 +1391,7 @@ Heatmap: [Language usage over last 30 days]
 │ [Test Connection] ✓ Connected       │
 │                                     │
 │ Sync Settings:                      │
-│ ○ Manual only                       │
+│ ○ Manual only                       ��
 │ ○ Daily auto-sync                  │
 │ ● Weekly auto-sync (Monday 2 AM)    │
 │ ○ Real-time (webhook)              │
@@ -1433,7 +1439,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌────────���────────────────���─────────────┐
+┌─────────────────────────���─────────────┐
 │ Translation Dashboard                 │
 ├────────────��──────────────────────────┤
 │ Coverage Summary:                     │
@@ -1547,7 +1553,7 @@ Heatmap: [Language usage over last 30 days]
 **Admin Controls:**
 ```
 ┌─────────────────────────────────────┐
-│ Key Discovery                       │
+│ Key Discovery                       ��
 ├───��──────────��──��─────────────��─────┤
 │ [Run Discovery Audit Now]           │
 │ Last Audit: 2 hours ago (1,247 keys)│
