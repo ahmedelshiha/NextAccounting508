@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { useState } from 'react'
 import { useFetchWithTimeout } from './useFetchWithTimeout'
 import { apiCache } from '../utils/cache'
 
 export type MutateOptions = {
   headers?: Record<string, string>
-  invalidate?: string[]
+  invalidate?: (string | RegExp)[]
   json?: boolean
 }
 
@@ -32,16 +31,14 @@ export function useFormMutation() {
         return { ok: false, error: result.error }
       }
 
-      // Invalidate any provided cache keys
       if (options.invalidate && options.invalidate.length) {
-        options.invalidate.forEach(pattern => {
+        for (const pattern of options.invalidate) {
           try {
-            // apiCache.deletePattern accepts string or RegExp
-            apiCache.deletePattern(typeof pattern === 'string' ? pattern : pattern)
+            apiCache.deletePattern(pattern)
           } catch (e) {
-            // ignore
+            // ignore invalidation errors
           }
-        })
+        }
       }
 
       return { ok: true, data: result.data }
