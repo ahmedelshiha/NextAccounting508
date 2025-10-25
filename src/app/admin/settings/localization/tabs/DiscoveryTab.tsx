@@ -6,6 +6,7 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { toast } from 'sonner'
 import { Code2, RefreshCw, Download, Check, Plus } from 'lucide-react'
+import { useFormMutation } from '../hooks/useFormMutation'
 
 interface AuditResult {
   keysInCode: number
@@ -16,7 +17,8 @@ interface AuditResult {
 }
 
 export const DiscoveryTab: React.FC = () => {
-  const { saving, setSaving } = useLocalizationContext()
+  const { saving: contextSaving } = useLocalizationContext()
+  const { mutate, saving } = useFormMutation()
   const [auditRunning, setAuditRunning] = useState(false)
   const [auditResults, setAuditResults] = useState<AuditResult | null>(null)
   const [scheduledAudit, setScheduledAudit] = useState<'none' | 'daily' | 'weekly'>('none')
@@ -25,58 +27,27 @@ export const DiscoveryTab: React.FC = () => {
 
   async function runDiscoveryAudit() {
     setAuditRunning(true)
-    setSaving(true)
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout for audit
-
-      const r = await fetch('/api/admin/translations/discover', {
-        method: 'POST',
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      const d = await r.json()
-
-      if (r.ok && d.data) {
-        setAuditResults(d.data)
-        toast.success('Discovery audit completed')
-      } else {
-        toast.error('Failed to run discovery audit')
-      }
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Audit request timed out' : e.message || 'Failed to run discovery audit'
-      toast.error(message)
-    } finally {
-      setAuditRunning(false)
-      setSaving(false)
+    const res = await mutate('/api/admin/translations/discover', 'POST', undefined, { invalidate: [] })
+    if (res.ok && res.data) {
+      setAuditResults(res.data as AuditResult)
+      toast.success('Discovery audit completed')
+    } else {
+      toast.error(res.error || 'Failed to run discovery audit')
     }
+    setAuditRunning(false)
   }
 
   async function scheduleAudit() {
-    setSaving(true)
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/translations/discover/schedule', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ frequency: scheduledAudit }),
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      if (r.ok) {
-        toast.success(`Audit scheduled: ${scheduledAudit === 'none' ? 'Disabled' : scheduledAudit}`)
-      } else {
-        toast.error('Failed to schedule audit')
-      }
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Request timed out' : e.message || 'Failed to schedule audit'
-      toast.error(message)
-    } finally {
-      setSaving(false)
+    const res = await mutate(
+      '/api/admin/translations/discover/schedule',
+      'POST',
+      { frequency: scheduledAudit },
+      { invalidate: [] }
+    )
+    if (res.ok) {
+      toast.success(`Audit scheduled: ${scheduledAudit === 'none' ? 'Disabled' : scheduledAudit}`)
+    } else {
+      toast.error(res.error || 'Failed to schedule audit')
     }
   }
 
@@ -139,32 +110,20 @@ export const DiscoveryTab: React.FC = () => {
     }
 
     setBulkAddLoading(true)
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-
-      const keysArray = Array.from(approvedKeys)
-      const r = await fetch('/api/admin/translations/discover/approve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keys: keysArray }),
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      if (r.ok) {
-        const approvedCount = keysArray.length
-        toast.success(`Added ${approvedCount} key(s) to translation system`)
-        setApprovedKeys(new Set())
-      } else {
-        toast.error('Failed to add keys')
-      }
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Request timed out' : e.message || 'Failed to add keys'
-      toast.error(message)
-    } finally {
-      setBulkAddLoading(false)
+    const keysArray = Array.from(approvedKeys)
+    const res = await mutate(
+      '/api/admin/translations/discover/approve',
+      'POST',
+      { keys: keysArray },
+      { invalidate: [] }
+    )
+    if (res.ok) {
+      toast.success(`Added ${keysArray.length} key(s) to translation system`)
+      setApprovedKeys(new Set())
+    } else {
+      toast.error(res.error || 'Failed to add keys')
     }
+    setBulkAddLoading(false)
   }
 
   return (

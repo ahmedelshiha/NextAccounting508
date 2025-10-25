@@ -24,6 +24,7 @@ const tabs = [
   { key: 'translations', label: 'Translation Dashboard' },
   { key: 'analytics', label: 'Analytics' },
   { key: 'discovery', label: 'Key Discovery' },
+  { key: 'heatmap', label: 'Activity Heatmap' },
 ]
 
 interface LanguageRow {

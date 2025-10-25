@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { TextField } from '@/components/admin/settings/FormField'
 import { ChevronDown, Copy, Check, AlertCircle } from 'lucide-react'
 import { useCache, invalidateCrowdinCaches } from '../hooks/useCache'
+import { useFormMutation } from '../hooks/useFormMutation'
 
 interface ProjectHealth {
   language: string
@@ -32,8 +33,9 @@ interface WebhookConfig {
 }
 
 export const IntegrationTab: React.FC = () => {
-  const { crowdinIntegration, setCrowdinIntegration, saving, setSaving } = useLocalizationContext()
+  const { crowdinIntegration, setCrowdinIntegration, saving: contextSaving, setSaving: setContextSaving } = useLocalizationContext()
   const { cachedFetch } = useCache()
+  const { mutate, saving } = useFormMutation()
   const [loading, setLoading] = useState(true)
   const [crowdinTestLoading, setCrowdinTestLoading] = useState(false)
   const [crowdinTestResult, setCrowdinTestResult] = useState<{ success: boolean; message: string } | null>(null)
@@ -118,84 +120,56 @@ export const IntegrationTab: React.FC = () => {
   async function testCrowdinConnection() {
     setCrowdinTestLoading(true)
     setCrowdinTestResult(null)
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/crowdin-integration', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: crowdinIntegration.projectId,
-          apiToken: crowdinIntegration.apiToken,
-        }),
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Connection test failed')
+    const res = await mutate(
+      '/api/admin/crowdin-integration',
+      'PUT',
+      {
+        projectId: crowdinIntegration.projectId,
+        apiToken: crowdinIntegration.apiToken,
+      },
+      { invalidate: [] }
+    )
+    if (res.ok) {
       setCrowdinTestResult({ success: true, message: 'Connection successful!' })
       toast.success('Crowdin connection test passed')
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Request timed out' : e?.message || 'Connection test failed'
+    } else {
+      const message = res.error || 'Connection test failed'
       setCrowdinTestResult({ success: false, message })
       toast.error(message)
-    } finally {
-      setCrowdinTestLoading(false)
     }
+    setCrowdinTestLoading(false)
   }
 
   async function saveCrowdinIntegration() {
-    setSaving(true)
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/crowdin-integration', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(crowdinIntegration),
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to save Crowdin integration')
-      invalidateCrowdinCaches() // Invalidate cache after mutation
+    const res = await mutate(
+      '/api/admin/crowdin-integration',
+      'POST',
+      crowdinIntegration,
+      { invalidate: [/crowdin-integration/] }
+    )
+    if (res.ok) {
       toast.success('Crowdin integration saved')
       await loadCrowdinIntegration()
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Request timed out' : e?.message || 'Failed to save integration'
-      toast.error(message)
-    } finally {
-      setSaving(false)
+    } else {
+      toast.error(res.error || 'Failed to save integration')
     }
   }
 
   async function manualSync() {
-    try {
-      setCrowdinTestLoading(true)
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/crowdin-integration/sync', {
-        method: 'POST',
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to run sync')
-      invalidateCrowdinCaches() // Invalidate cache after mutation
+    setCrowdinTestLoading(true)
+    const res = await mutate(
+      '/api/admin/crowdin-integration/sync',
+      'POST',
+      undefined,
+      { invalidate: [/crowdin-integration/] }
+    )
+    if (res.ok) {
       toast.success('Sync started successfully')
       await Promise.all([loadCrowdinIntegration(), loadProjectHealth(), loadSyncLogs()])
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Request timed out' : e?.message || 'Failed to run sync'
-      toast.error(message)
-    } finally {
-      setCrowdinTestLoading(false)
+    } else {
+      toast.error(res.error || 'Failed to run sync')
     }
+    setCrowdinTestLoading(false)
   }
 
   async function loadWebhookConfig() {
@@ -218,28 +192,17 @@ export const IntegrationTab: React.FC = () => {
   }
 
   async function setupWebhook() {
-    setSaving(true)
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
-      const r = await fetch('/api/admin/crowdin-integration/webhook', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: !webhookEnabled }),
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-      const d = await r.json()
-      if (r.ok) {
-        toast.success('Webhook ' + (webhookEnabled ? 'disabled' : 'enabled') + ' successfully')
-        await loadWebhookConfig()
-      } else {
-        toast.error(d.error || 'Failed to setup webhook')
-      }
-    } catch (e: any) {
-      toast.error(e?.message || 'Failed to setup webhook')
-    } finally {
-      setSaving(false)
+    const res = await mutate(
+      '/api/admin/crowdin-integration/webhook',
+      'POST',
+      { enabled: !webhookEnabled },
+      { invalidate: [] }
+    )
+    if (res.ok) {
+      toast.success('Webhook ' + (webhookEnabled ? 'disabled' : 'enabled') + ' successfully')
+      await loadWebhookConfig()
+    } else {
+      toast.error(res.error || 'Failed to setup webhook')
     }
   }
 
@@ -254,26 +217,18 @@ export const IntegrationTab: React.FC = () => {
 
   async function testWebhookDelivery() {
     setCrowdinTestLoading(true)
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
-      const r = await fetch('/api/admin/crowdin-integration/webhook/test', {
-        method: 'POST',
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-      const d = await r.json()
-      if (r.ok) {
-        toast.success('Test webhook delivery sent successfully')
-      } else {
-        toast.error(d?.error || 'Failed to test webhook delivery')
-      }
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Request timed out' : e?.message || 'Failed to test webhook delivery'
-      toast.error(message)
-    } finally {
-      setCrowdinTestLoading(false)
+    const res = await mutate(
+      '/api/admin/crowdin-integration/webhook/test',
+      'POST',
+      undefined,
+      { invalidate: [] }
+    )
+    if (res.ok) {
+      toast.success('Test webhook delivery sent successfully')
+    } else {
+      toast.error(res.error || 'Failed to test webhook delivery')
     }
+    setCrowdinTestLoading(false)
   }
 
   if (loading) {

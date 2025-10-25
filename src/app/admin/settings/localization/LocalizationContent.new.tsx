@@ -19,6 +19,7 @@ const IntegrationTab = lazy(() => import('./tabs').then(m => ({ default: m.Integ
 const TranslationsTab = lazy(() => import('./tabs').then(m => ({ default: m.TranslationsTab })))
 const AnalyticsTab = lazy(() => import('./tabs').then(m => ({ default: m.AnalyticsTab })))
 const DiscoveryTab = lazy(() => import('./tabs').then(m => ({ default: m.DiscoveryTab })))
+const HeatmapTab = lazy(() => import('./tabs').then(m => ({ default: m.HeatmapTab })))
 
 const TAB_COMPONENTS: Record<TabKey, React.ComponentType> = {
   languages: LanguagesTab,
@@ -29,6 +30,7 @@ const TAB_COMPONENTS: Record<TabKey, React.ComponentType> = {
   translations: TranslationsTab,
   analytics: AnalyticsTab,
   discovery: DiscoveryTab,
+  heatmap: HeatmapTab,
 }
 
 // Tab fallback component for better UX during lazy loading
