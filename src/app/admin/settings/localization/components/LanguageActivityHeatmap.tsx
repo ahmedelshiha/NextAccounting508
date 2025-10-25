@@ -102,11 +102,29 @@ export const LanguageActivityHeatmap: React.FC = () => {
     }
   }
 
+  const period = data?.periods?.[0] ?? null
+
+  const languageList = useMemo(() => {
+    if (!period || !period.data) return []
+    const list = Array.from(new Set(period.data.map(d => d.language))).sort()
+    return selectedLanguages.length ? list.filter(l => selectedLanguages.includes(l)) : list
+  }, [period, selectedLanguages])
+
+  const timestamps = useMemo(() => {
+    if (!period || !period.data) return []
+    return Array.from(new Set(period.data.map(d => d.timestamp))).sort()
+  }, [period])
+
+  const maxSessions = useMemo(() => {
+    if (!period || !period.data || period.data.length === 0) return 1
+    return Math.max(...period.data.map(d => d.sessionCount), 1)
+  }, [period])
+
   if (loading) {
     return <div className="text-gray-600 py-12 text-center">Loading activity heatmap...</div>
   }
 
-  if (!data || !data.periods.length) {
+  if (!data || !data.periods || data.periods.length === 0) {
     return (
       <div className="rounded-lg border bg-white p-6 text-center">
         <Activity className="h-12 w-12 text-gray-400 mx-auto mb-3" />
@@ -115,17 +133,6 @@ export const LanguageActivityHeatmap: React.FC = () => {
       </div>
     )
   }
-
-  const period = data.periods[0]
-  const languageList = useMemo(() => {
-    const list = Array.from(new Set(period.data.map(d => d.language))).sort()
-    // include only selected languages if filter applied
-    return selectedLanguages.length ? list.filter(l => selectedLanguages.includes(l)) : list
-  }, [period, selectedLanguages])
-
-  const timestamps = useMemo(() => Array.from(new Set(period.data.map(d => d.timestamp))).sort(), [period])
-
-  const maxSessions = Math.max(...period.data.map(d => d.sessionCount), 1)
 
   function getIntensity(count: number): number {
     if (count === 0) return 0
