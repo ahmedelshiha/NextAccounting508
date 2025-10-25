@@ -184,7 +184,7 @@ export const LanguageActivityHeatmap: React.FC = () => {
 
   function getLanguageDisplay(code: string): { name: string; flag: string } {
     const lang = languages.find(l => l.code === code)
-    return lang ? { name: lang.name, flag: lang.flag } : { name: code.toUpperCase(), flag: '🌐' }
+    return lang ? { name: lang.name || code.toUpperCase(), flag: lang.flag || '🌐' } : { name: code.toUpperCase(), flag: '🌐' }
   }
 
   function toggleLanguageSelection(code: string) {
