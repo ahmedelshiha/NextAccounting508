@@ -6,7 +6,7 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { toast } from 'sonner'
 import { TextField } from '@/components/admin/settings/FormField'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Copy, Check, AlertCircle } from 'lucide-react'
 
 interface ProjectHealth {
   language: string
