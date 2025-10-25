@@ -276,11 +276,11 @@ describe('LanguagesTab', () => {
     await user.click(updateButton)
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        `/api/admin/languages/fr`,
-        expect.objectContaining({
-          method: 'PUT',
-        })
+      expect(mutateMock).toHaveBeenCalledWith(
+        '/api/admin/languages/fr',
+        'PUT',
+        expect.any(Object),
+        expect.objectContaining({ invalidate: expect.any(Array) })
       )
     })
   })
