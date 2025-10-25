@@ -165,6 +165,20 @@ model VerificationToken {
   @@map("verificationtokens")
 }
 
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum PriorityStatus {
+  OPEN
+  IN_PROGRESS
+  BLOCKED
+  DONE
+}
+
 enum TenantStatus {
   ACTIVE
   SUSPENDED
