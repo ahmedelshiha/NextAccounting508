@@ -21,18 +21,8 @@ export const LanguagesTab: React.FC = () => {
   } = useLocalizationContext()
 
   const [loading, setLoading] = useState(true)
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [editing, setEditing] = useState<Record<string, Partial<LanguageRow>>>({})
-  const [newLang, setNewLang] = useState<LanguageRow>({
-    code: '',
-    name: '',
-    nativeName: '',
-    direction: 'ltr',
-    flag: '🌐',
-    bcp47Locale: '',
-    enabled: true,
-    featured: false,
-  })
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editingLanguage, setEditingLanguage] = useState<LanguageRow | null>(null)
 
   useEffect(() => {
     loadLanguages()
