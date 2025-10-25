@@ -252,11 +252,17 @@ export const DiscoveryTab: React.FC = () => {
                   </span>
                   Orphaned Keys (Not Used in Code)
                 </h4>
-                <div className="rounded-lg border bg-orange-50 p-4 space-y-2">
+                <div className="rounded-lg border bg-orange-50 p-4 space-y-3">
                   {auditResults.orphanedKeys.slice(0, 10).map(key => (
-                    <p key={key} className="text-sm text-orange-900">
-                      • <code className="text-xs bg-orange-100 px-2 py-1 rounded">{key}</code>
-                    </p>
+                    <label key={key} className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={approvedKeys.has(key)}
+                        onChange={() => toggleKeyApproval(key)}
+                        className="w-4 h-4 text-orange-600 rounded"
+                      />
+                      <code className="text-xs bg-orange-100 px-2 py-1 rounded flex-1">{key}</code>
+                    </label>
                   ))}
                   {auditResults.orphanedKeys.length > 10 && (
                     <p className="text-sm text-orange-700 font-medium">
