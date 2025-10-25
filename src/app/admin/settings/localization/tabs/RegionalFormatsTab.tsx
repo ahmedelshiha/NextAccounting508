@@ -6,6 +6,7 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { toast } from 'sonner'
 import { REGIONAL_FORMAT_PRESETS } from '../constants'
+import { useCache, invalidateLanguageCaches } from '../hooks/useCache'
 
 interface FormatState {
   [languageCode: string]: {
@@ -21,6 +22,7 @@ interface FormatState {
 
 export const RegionalFormatsTab: React.FC = () => {
   const { languages, saving, setSaving } = useLocalizationContext()
+  const { cachedFetch } = useCache()
   const [loading, setLoading] = useState(true)
   const [formats, setFormats] = useState<FormatState>({})
   const [selectedLanguage, setSelectedLanguage] = useState<string>('')
@@ -41,14 +43,10 @@ export const RegionalFormatsTab: React.FC = () => {
   async function loadFormats() {
     try {
       setLoading(true)
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/regional-formats', { signal: controller.signal })
-      clearTimeout(timeoutId)
-
-      const d = await r.json()
-      if (r.ok && d.data) {
+      const d = await cachedFetch<{ data: any[] }>('/api/admin/regional-formats', {
+        ttlMs: 5 * 60 * 1000, // 5 minute cache
+      })
+      if (d.data) {
         const formatMap: FormatState = {}
         d.data.forEach((format: any) => {
           formatMap[format.language] = {
@@ -65,9 +63,6 @@ export const RegionalFormatsTab: React.FC = () => {
       }
     } catch (e: any) {
       console.error('Failed to load regional formats:', e)
-      if (e.name === 'AbortError') {
-        console.error('Request timed out')
-      }
     } finally {
       setLoading(false)
     }
