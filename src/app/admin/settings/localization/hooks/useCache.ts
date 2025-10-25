@@ -76,7 +76,6 @@ export function useCache() {
     }
 
     // Make the actual request (with timeout and standardized errors)
-    const { fetchWithTimeout } = useFetchWithTimeout()
     const fetchPromise = (async () => {
       const result = await fetchWithTimeout<T>(url, {
         ...fetchOptions,
