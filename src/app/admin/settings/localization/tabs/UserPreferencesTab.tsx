@@ -52,6 +52,9 @@ export const UserPreferencesTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Bulk Assignment Panel */}
+      <BulkUserLanguageAssignPanel />
+
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="rounded-lg border bg-white p-6">
