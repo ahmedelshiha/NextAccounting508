@@ -97,6 +97,7 @@ export const RegionalFormatsTab: React.FC = () => {
       if (r.ok) {
         setErrors({})
         toast.success(`Regional format saved for ${languageCode}`)
+        invalidateLanguageCaches() // Invalidate cache after mutation
         await loadFormats()
       } else {
         toast.error('Failed to save regional format')
