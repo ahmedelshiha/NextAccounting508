@@ -37,6 +37,9 @@ vi.mock('@/components/admin/settings/FormField', () => ({
 
 vi.mock('lucide-react', () => ({
   ChevronDown: () => <span>ChevronDown</span>,
+  Copy: () => <span>Copy</span>,
+  Check: () => <span>Check</span>,
+  AlertCircle: () => <span>AlertCircle</span>,
 }))
 
 describe('IntegrationTab', () => {
