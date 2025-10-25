@@ -169,8 +169,9 @@ export const LanguageActivityHeatmap: React.FC = () => {
   }
 
   function getSessionCount(language: string, timestamp: string): number {
+    if (!period || !period.data) return 0
     const match = period.data.find(d => d.language === language && d.timestamp === timestamp)
-    return match?.sessionCount || 0
+    return match?.sessionCount ?? 0
   }
 
   function formatTimestamp(timestamp: string): string {
