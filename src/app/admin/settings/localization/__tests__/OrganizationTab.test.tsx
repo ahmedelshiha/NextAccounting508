@@ -26,13 +26,21 @@ vi.mock('@/components/admin/settings/FormField', () => ({
     </select>
   ),
   Toggle: ({ value, onChange, label }: any) => (
-    <input 
-      type="checkbox" 
-      checked={value} 
+    <input
+      type="checkbox"
+      checked={value}
       onChange={e => onChange(e.target.checked)}
       aria-label={label}
     />
   ),
+}))
+
+let mutateMock = vi.fn()
+vi.mock('../hooks/useFormMutation', () => ({
+  useFormMutation: () => ({
+    saving: false,
+    mutate: (...args: any[]) => mutateMock(...args),
+  }),
 }))
 
 describe('OrganizationTab', () => {
