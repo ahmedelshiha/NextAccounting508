@@ -114,22 +114,16 @@ export const LanguagesTab: React.FC = () => {
       const text = await file.text()
       const data = JSON.parse(text) as LanguageRow[]
 
-      setSaving(true)
-      const r = await fetch('/api/admin/languages/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ languages: data }),
-      })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to import languages')
-
-      invalidateLanguageCaches() // Invalidate cache after mutation
-      await loadLanguages()
-      toast.success(`Imported ${data.length} languages`)
+      const res = await mutate('/api/admin/languages/import', 'POST', { languages: data }, { invalidate: ['api/admin/languages'] })
+      if (!res.ok) {
+        toast.error(res.error || 'Failed to import languages')
+      } else {
+        await loadLanguages()
+        toast.success(`Imported ${data.length} languages`)
+      }
     } catch (e: any) {
       toast.error(e?.message || 'Failed to import languages')
     } finally {
-      setSaving(false)
       if (e.target) e.target.value = ''
     }
   }
