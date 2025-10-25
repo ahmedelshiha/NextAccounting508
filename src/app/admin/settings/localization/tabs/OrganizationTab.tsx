@@ -43,19 +43,11 @@ export const OrganizationTab: React.FC = () => {
     }
   }
 
+  const { validateOrgSettings } = useFormValidation()
+
   function validateSettings(): string | null {
-    const defaultLang = languages.find(l => l.code === orgSettings.defaultLanguage)
-    const fallbackLang = languages.find(l => l.code === orgSettings.fallbackLanguage)
-
-    if (!defaultLang || !defaultLang.enabled) {
-      return 'Default language must be an enabled language'
-    }
-
-    if (!fallbackLang || !fallbackLang.enabled) {
-      return 'Fallback language must be an enabled language'
-    }
-
-    return null
+    const errors = validateOrgSettings(orgSettings, languages)
+    return errors.general || null
   }
 
   const { saving: mutationSaving, mutate } = useFormMutation()
@@ -128,7 +120,7 @@ export const OrganizationTab: React.FC = () => {
                 </div>
                 <p className="text-xs text-gray-600">Language shown to new users and guests</p>
                 {isDefaultLanguageDisabled && (
-                  <p className="text-xs text-red-600 mt-1">���️ The selected default language is currently disabled</p>
+                  <p className="text-xs text-red-600 mt-1">⚠️ The selected default language is currently disabled</p>
                 )}
               </div>
               <div>
