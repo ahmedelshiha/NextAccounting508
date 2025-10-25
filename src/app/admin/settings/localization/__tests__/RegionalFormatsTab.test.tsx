@@ -232,4 +232,100 @@ describe('RegionalFormatsTab', () => {
       expect(screen.getByText(/Failed to save formats/i)).toBeInTheDocument()
     })
   })
+
+  test('allows selecting different languages via dropdown', async () => {
+    const user = userEvent.setup()
+    const mockFormats = {
+      en: {
+        language: 'en',
+        dateFormat: 'MM/DD/YYYY',
+        timeFormat: '12:34 PM',
+        currencyCode: 'USD',
+        currencySymbol: '$',
+        numberFormat: '#,##0.00',
+        decimalSeparator: '.',
+        thousandsSeparator: ',',
+      },
+      ar: {
+        language: 'ar',
+        dateFormat: 'DD/MM/YYYY',
+        timeFormat: '14:35',
+        currencyCode: 'AED',
+        currencySymbol: 'د.إ',
+        numberFormat: '#,##0.00',
+        decimalSeparator: ',',
+        thousandsSeparator: '.',
+      },
+    }
+
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: [mockFormats.en, mockFormats.ar] }),
+      } as Response)
+    )
+
+    render(
+      <LocalizationProvider>
+        <RegionalFormatsTab />
+      </LocalizationProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Loading formats/i)).not.toBeInTheDocument()
+    })
+
+    const selectDropdown = screen.getByDisplayValue(/English/)
+    expect(selectDropdown).toBeInTheDocument()
+
+    await user.selectOption(selectDropdown, 'ar')
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('AED')).toBeInTheDocument()
+    })
+  })
+
+  test('validates currency code length', async () => {
+    const user = userEvent.setup()
+    const mockFormats = {
+      en: {
+        language: 'en',
+        dateFormat: 'MM/DD/YYYY',
+        timeFormat: '12:34 PM',
+        currencyCode: 'USD',
+        currencySymbol: '$',
+        numberFormat: '#,##0.00',
+        decimalSeparator: '.',
+        thousandsSeparator: ',',
+      },
+    }
+
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: [mockFormats.en] }),
+      } as Response)
+    )
+
+    render(
+      <LocalizationProvider>
+        <RegionalFormatsTab />
+      </LocalizationProvider>
+    )
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Loading formats/i)).not.toBeInTheDocument()
+    })
+
+    const currencyInput = screen.getByDisplayValue('USD')
+    await user.clear(currencyInput)
+    await user.type(currencyInput, 'TOOLONG')
+
+    const saveButton = screen.getByRole('button', { name: /Save/i })
+    await user.click(saveButton)
+
+    await waitFor(() => {
+      expect(screen.getByText(/Currency code must be 3 letters/i)).toBeInTheDocument()
+    })
+  })
 })
