@@ -58,6 +58,8 @@ export const OrganizationTab: React.FC = () => {
     return null
   }
 
+  const { saving: mutationSaving, mutate } = useFormMutation()
+
   async function saveOrgSettings() {
     const validationError = validateSettings()
     if (validationError) {
@@ -66,32 +68,21 @@ export const OrganizationTab: React.FC = () => {
       return
     }
 
-    setSaving(true)
     setError(null)
+    setSaving(true)
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/org-settings/localization', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orgSettings),
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to save organization settings')
-      invalidateLanguageCaches() // Invalidate cache after mutation
-      toast.success('Organization settings saved')
-    } catch (e: any) {
-      if (e.name === 'AbortError') {
-        setError('Request timed out. Please try again.')
-        toast.error('Request timed out')
-      } else {
-        setError(e?.message || 'Failed to save organization settings')
-        toast.error(e?.message || 'Failed to save settings')
+      const res = await mutate('/api/admin/org-settings/localization', 'PUT', orgSettings, { invalidate: ['api/admin/org-settings', 'api/admin/languages'] })
+      if (!res.ok) {
+        setError(res.error || 'Failed to save organization settings')
+        toast.error(res.error || 'Failed to save organization settings')
+        return
       }
+      invalidateLanguageCaches()
+      toast.success('Organization settings saved')
+      await loadOrgSettings()
+    } catch (e: any) {
+      setError(e?.message || 'Failed to save organization settings')
+      toast.error(e?.message || 'Failed to save organization settings')
     } finally {
       setSaving(false)
     }
@@ -137,7 +128,7 @@ export const OrganizationTab: React.FC = () => {
                 </div>
                 <p className="text-xs text-gray-600">Language shown to new users and guests</p>
                 {isDefaultLanguageDisabled && (
-                  <p className="text-xs text-red-600 mt-1">⚠️ The selected default language is currently disabled</p>
+                  <p className="text-xs text-red-600 mt-1">���️ The selected default language is currently disabled</p>
                 )}
               </div>
               <div>
