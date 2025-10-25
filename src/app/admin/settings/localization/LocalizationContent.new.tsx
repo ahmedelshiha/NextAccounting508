@@ -30,6 +30,7 @@ const TAB_COMPONENTS: Record<TabKey, React.ComponentType> = {
   translations: TranslationsTab,
   analytics: AnalyticsTab,
   discovery: DiscoveryTab,
+  heatmap: HeatmapTab,
 }
 
 // Tab fallback component for better UX during lazy loading
