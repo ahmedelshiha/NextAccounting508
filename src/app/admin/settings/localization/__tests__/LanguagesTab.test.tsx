@@ -73,7 +73,7 @@ describe('LanguagesTab', () => {
     })
   })
 
-  test('allows adding new language', async () => {
+  test('allows adding new language via modal', async () => {
     const user = userEvent.setup()
 
     global.fetch = vi.fn()
@@ -89,6 +89,12 @@ describe('LanguagesTab', () => {
           json: () => Promise.resolve({}),
         } as Response)
       )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
 
     render(
       <LocalizationProvider>
@@ -99,11 +105,15 @@ describe('LanguagesTab', () => {
     const addButton = await screen.findByText(/Add Language/i)
     await user.click(addButton)
 
-    const codeInput = screen.getByPlaceholderText('e.g. fr')
-    await user.type(codeInput, 'fr')
+    await waitFor(() => {
+      expect(screen.getByText('Quick Select Popular Language')).toBeInTheDocument()
+    })
 
     const nameInput = screen.getByPlaceholderText('e.g. French')
     await user.type(nameInput, 'French')
+
+    const codeInput = screen.getByPlaceholderText('e.g. fr')
+    await user.type(codeInput, 'fr')
 
     const nativeInput = screen.getByPlaceholderText('e.g. Français')
     await user.type(nativeInput, 'Français')
@@ -111,7 +121,7 @@ describe('LanguagesTab', () => {
     const localeInput = screen.getByPlaceholderText('e.g. fr-FR')
     await user.type(localeInput, 'fr-FR')
 
-    const submitButton = screen.getByRole('button', { name: /Add Language/i })
+    const submitButton = screen.getAllByRole('button', { name: /Add Language/i })[1]
     await user.click(submitButton)
 
     await waitFor(() => {
