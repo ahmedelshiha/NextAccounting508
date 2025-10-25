@@ -120,32 +120,24 @@ export const IntegrationTab: React.FC = () => {
   async function testCrowdinConnection() {
     setCrowdinTestLoading(true)
     setCrowdinTestResult(null)
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/crowdin-integration', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId: crowdinIntegration.projectId,
-          apiToken: crowdinIntegration.apiToken,
-        }),
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Connection test failed')
+    const res = await mutate(
+      '/api/admin/crowdin-integration',
+      'PUT',
+      {
+        projectId: crowdinIntegration.projectId,
+        apiToken: crowdinIntegration.apiToken,
+      },
+      { invalidate: [] }
+    )
+    if (res.ok) {
       setCrowdinTestResult({ success: true, message: 'Connection successful!' })
       toast.success('Crowdin connection test passed')
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Request timed out' : e?.message || 'Connection test failed'
+    } else {
+      const message = res.error || 'Connection test failed'
       setCrowdinTestResult({ success: false, message })
       toast.error(message)
-    } finally {
-      setCrowdinTestLoading(false)
     }
+    setCrowdinTestLoading(false)
   }
 
   async function saveCrowdinIntegration() {
