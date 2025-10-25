@@ -327,14 +327,23 @@ export const OrganizationTab: React.FC = () => {
               <div className="rounded-lg border bg-gray-50 p-4">
                 <p className="text-xs font-semibold text-gray-600 uppercase mb-3">RTL Languages</p>
                 {orgSettings.enableRtlSupport ? (
-                  <div
-                    className="bg-white rounded border border-gray-300 px-3 py-3 text-right"
-                    dir="rtl"
-                  >
-                    <p className="text-sm text-gray-700">مرحبا بالعالم</p>
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <p className="text-xs font-medium text-green-700">RTL support enabled</p>
+                    </div>
+                    <div
+                      className="bg-white rounded border border-gray-300 px-3 py-3 text-right"
+                      dir="rtl"
+                    >
+                      <p className="text-sm text-gray-700">مرحبا بالعالم</p>
+                    </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 italic">RTL support disabled</p>
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-gray-400" />
+                    <p className="text-sm text-gray-500">RTL support disabled</p>
+                  </div>
                 )}
               </div>
             </div>
