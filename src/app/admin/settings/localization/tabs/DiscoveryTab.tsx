@@ -5,7 +5,7 @@ import { useLocalizationContext } from '../LocalizationProvider'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { toast } from 'sonner'
-import { Code2, RefreshCw } from 'lucide-react'
+import { Code2, RefreshCw, Download, Check, Plus } from 'lucide-react'
 
 interface AuditResult {
   keysInCode: number
