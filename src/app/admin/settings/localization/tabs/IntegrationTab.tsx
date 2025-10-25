@@ -217,26 +217,18 @@ export const IntegrationTab: React.FC = () => {
 
   async function testWebhookDelivery() {
     setCrowdinTestLoading(true)
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
-      const r = await fetch('/api/admin/crowdin-integration/webhook/test', {
-        method: 'POST',
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-      const d = await r.json()
-      if (r.ok) {
-        toast.success('Test webhook delivery sent successfully')
-      } else {
-        toast.error(d?.error || 'Failed to test webhook delivery')
-      }
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Request timed out' : e?.message || 'Failed to test webhook delivery'
-      toast.error(message)
-    } finally {
-      setCrowdinTestLoading(false)
+    const res = await mutate(
+      '/api/admin/crowdin-integration/webhook/test',
+      'POST',
+      undefined,
+      { invalidate: [] }
+    )
+    if (res.ok) {
+      toast.success('Test webhook delivery sent successfully')
+    } else {
+      toast.error(res.error || 'Failed to test webhook delivery')
     }
+    setCrowdinTestLoading(false)
   }
 
   if (loading) {
