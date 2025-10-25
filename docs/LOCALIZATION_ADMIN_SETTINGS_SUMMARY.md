@@ -5,6 +5,35 @@
 **Owner:** Admin Settings Team
 **Audit Reference:** See `docs/admin/settings/localization/AUDIT_REPORT.md` for detailed findings
 
+---
+
+## 🚀 How to Use This Document
+
+**For Project Managers & Decision Makers:**
+1. Start with "Quick Status Overview" section (below)
+2. Review "PHASE 0-5 Implementation Plan" for timeline and effort estimates
+3. Check "Implementation Timeline & Sequencing" for visual timeline
+4. Reference the audit report for specific findings: `docs/admin/settings/localization/AUDIT_REPORT.md`
+
+**For Developers Implementing Improvements:**
+1. Read the specific PHASE section you're assigned to (PHASE 1, 2, 3, 4, or 5)
+2. Follow the Tasks checklist
+3. Note Files to Create/Modify
+4. Check Validation Criteria before marking done
+5. Reference API docs if needed: `docs/LOCALIZATION_API_REFERENCE.md`
+
+**For QA/Testing:**
+1. Review "Validation Criteria" in your PHASE section
+2. Run tests from test files listed
+3. Use "Testing Checklist" in audit report: `docs/admin/settings/localization/AUDIT_REPORT.md`
+
+**For DevOps/Deployment:**
+1. See "PHASE 0: PRODUCTION DEPLOYMENT" section (ready now)
+2. Follow deployment guide: `docs/LOCALIZATION_DEPLOYMENT_GUIDE.md`
+3. Use rollback procedures if needed
+
+---
+
 ## 📚 Documentation Structure
 
 This file provides the high-level implementation roadmap. For detailed information, see:
@@ -1231,7 +1260,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌─────────────────────────────────────┐
 │ Key Discovery                       │
-├───��───────────────────────────��─────┤
+├───��──────────��────────────────��─────┤
 │ [Run Discovery Audit Now]           │
 │ Last Audit: 2 hours ago (1,247 keys)│
 │                                     │
