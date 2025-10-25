@@ -17,7 +17,8 @@ interface AuditResult {
 }
 
 export const DiscoveryTab: React.FC = () => {
-  const { saving, setSaving } = useLocalizationContext()
+  const { saving: contextSaving } = useLocalizationContext()
+  const { mutate, saving } = useFormMutation()
   const [auditRunning, setAuditRunning] = useState(false)
   const [auditResults, setAuditResults] = useState<AuditResult | null>(null)
   const [scheduledAudit, setScheduledAudit] = useState<'none' | 'daily' | 'weekly'>('none')
