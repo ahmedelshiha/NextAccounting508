@@ -50,7 +50,7 @@ This file provides the high-level implementation roadmap. For detailed informati
 
 ---
 
-## 📋 Quick Status Overview
+## ��� Quick Status Overview
 
 | Aspect | Status | Notes |
 |--------|--------|-------|
@@ -223,18 +223,22 @@ This file provides the high-level implementation roadmap. For detailed informati
 
 ---
 
-### 1.3 Organization Settings Tab - Add Validation UI
+### 1.3 Organization Settings Tab - Enhanced Dropdowns & Validation (Selection-Based UX)
 
-**Current State:** Settings form with dropdowns (minimal validation feedback)
-**Target State:** Real-time validation with visual feedback
+**Current State:** Settings form with dropdowns (all selections, already good)
+**Target State:** Enhanced dropdowns with validation feedback and visual clarity
+**Verification:** ✅ Confirmed already good, improvements make it better
 
 **Tasks:**
+- [x] ✅ Review existing dropdown implementation (already all selections - verified)
+- [x] ✅ Plan validation UI improvements (verified)
 - [ ] Add inline validation: fallback language must be enabled
 - [ ] Show warning icon if default/fallback language disabled
 - [ ] Add helper text explaining each setting
-- [ ] Show language flags next to dropdown options
+- [ ] Show language flags next to dropdown options for visual clarity
 - [ ] Add inline language status indicator (enabled/disabled)
-- [ ] Preview section showing impact of settings
+- [ ] Add preview panel showing impact of settings on UI
+- [ ] Prevent saving with disabled default/fallback language
 
 **Files to Modify:**
 - `src/app/admin/settings/localization/tabs/OrganizationTab.tsx`
@@ -851,7 +855,7 @@ The Localization Admin Settings module is being refactored from a **single 700+ 
 
 ```
 src/app/admin/settings/localization/
-├── page.tsx                              # Route entry point (clean)
+├���─ page.tsx                              # Route entry point (clean)
 ├── LocalizationProvider.tsx              # Centralized state & API
 ├── useLocalizationContext.ts             # Custom hook for state
 ├── types.ts                              # Shared TypeScript interfaces
@@ -1044,7 +1048,7 @@ Heatmap: [Language usage over last 30 days]
 │ ├─ Date: MM/DD/YYYY               │
 │ ├─ Time: 12:34 PM                 │
 │ ├─ Currency: $ USD                │
-│ ├─ Decimal: .                     ���
+│ ├─ Decimal: .                     �����
 │ └─ Thousands: ,                   │
 │ Preview: $1,234.56 on 10/21/2025  │
 │ [Import CLDR] [Validate] [Save]   │
@@ -1283,7 +1287,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌─────────────────────────────────────┐
 │ Key Discovery                       │
-├───��──────────��────────────────��─────┤
+├───��──────────��────���───────────��─────┤
 │ [Run Discovery Audit Now]           │
 │ Last Audit: 2 hours ago (1,247 keys)│
 │                                     │
