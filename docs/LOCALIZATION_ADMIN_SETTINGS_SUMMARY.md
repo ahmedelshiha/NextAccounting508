@@ -591,10 +591,13 @@ This file provides the high-level implementation roadmap. For detailed informati
 - `src/app/admin/settings/localization/tabs/RegionalFormatsTab.tsx` (refactored)
 
 **Remaining Tasks:**
-- [ ] Centralize validation logic (e.g., create useFormValidation hook) and connect to existing FormField components
-- [ ] Update unit tests to use new helper and ensure coverage
+- [ ] Update unit tests to use new helper and ensure coverage (DONE)
+- [ ] Connect useFormValidation to FormField components for inline validation display (next iteration)
 
-**Estimated Remaining Effort:** 1.0 hours
+**Progress Update:**
+- ✅ Centralized validation logic added via `useFormValidation` and wired into LanguageEditModal, OrganizationTab, and RegionalFormatsTab
+
+**Estimated Remaining Effort:** 0.5 hours
 **Priority:** MEDIUM (maintainability)
 
 ---
@@ -658,7 +661,7 @@ This file provides the high-level implementation roadmap. For detailed informati
 │       └─ Chart library code splitting                          │
 │                                                                 │
 │ WEEK 4:   PHASE 4 - CODE QUALITY (2-3 hours effort)             │
-│       └��� Extract useFetchWithTimeout                           │
+│       └─ Extract useFetchWithTimeout                           │
 │       └─ Extract common form patterns                          │
 │                                                                 │
 │ FUTURE:   PHASE 5 - ADVANCED FEATURES (5-7 hours effort)        │
@@ -1233,7 +1236,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌──���────────────────────────────��────────┐
 │ User Language Control                  │
-├──────���────────��────────────────────────���
+├──────���────────��────────────────────────�����
 │ Total Users: 5,432                     │
 │ Languages in Use: 7                    │
 │                                       │
@@ -1430,7 +1433,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌─────────────────────────���─────────────┐
+┌────────���────────────────���─────────────┐
 │ Translation Dashboard                 │
 ├────────────��──────────────────────────┤
 │ Coverage Summary:                     │
