@@ -587,13 +587,14 @@ This file provides the high-level implementation roadmap. For detailed informati
 **Files Created/Modified:**
 - `src/app/admin/settings/localization/hooks/useFormMutation.ts` (new)
 - `src/app/admin/settings/localization/tabs/LanguagesTab.tsx` (refactored to use helper)
+- `src/app/admin/settings/localization/tabs/OrganizationTab.tsx` (refactored)
+- `src/app/admin/settings/localization/tabs/RegionalFormatsTab.tsx` (refactored)
 
 **Remaining Tasks:**
-- [ ] Replace duplicate mutation logic in OrganizationTab and RegionalFormatsTab with `useFormMutation` or shared helpers
 - [ ] Centralize validation logic (e.g., create useFormValidation hook) and connect to existing FormField components
 - [ ] Update unit tests to use new helper and ensure coverage
 
-**Estimated Remaining Effort:** 1.5 hours
+**Estimated Remaining Effort:** 1.0 hours
 **Priority:** MEDIUM (maintainability)
 
 ---
@@ -663,7 +664,7 @@ This file provides the high-level implementation roadmap. For detailed informati
 │ FUTURE:   PHASE 5 - ADVANCED FEATURES (5-7 hours effort)        │
 │       └─ Bulk user assignment                                  │
 │       └─ Activity heatmaps                                     │
-│       └─ Translation priorities                                │
+│       └─ Translation priorities                                ���
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -1154,7 +1155,7 @@ src/app/admin/settings/localization/
 │ en   │ English   │ ✓ On  │ ⭐      │
 │ ar   │ العربي��   │ ✓ On  │ ⭐      │
 │ fr   │ Français  │ ✗ Off │         │
-��─────┴──────────┴────���───┴─────────┘
+��─────┴──────────┴────�����───┴─────────┘
 
 Heatmap: [Language usage over last 30 days]
 ```
@@ -1275,7 +1276,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌─────────────────────────────────────��
+┌──────────────────��──────────────────��
 │ Regional Formats                    │
 ├─────���─────────────────���─────────────┤
 │ English (en-US)                    │
@@ -1359,7 +1360,7 @@ Heatmap: [Language usage over last 30 days]
 - ✅ **NEW: Webhook setup** (Crowdin → website auto-push)
 - ✅ **NEW: Sync status dashboard** (last sync time, next scheduled)
 - ✅ **NEW: Crowdin project health** (% complete per language)
-- ✅ **NEW: Create review PRs** (auto-generate translation PRs)
+- ��� **NEW: Create review PRs** (auto-generate translation PRs)
 - ✅ **NEW: Sync log viewer** (audit trail of all syncs)
 
 **Admin Controls:**
@@ -1443,7 +1444,7 @@ Heatmap: [Language usage over last 30 days]
 │                                      │
 │ [View All Missing] [Assign Tasks]    │
 │ [Generate Report] [Set Priorities]   │
-└───────────────────────────────────────┘
+└──────────────────────────────────��────┘
 ```
 
 **API Endpoints:**
@@ -1475,7 +1476,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌─────────────────────────────────────┐
+┌────────────────────��────────────────┐
 │ Analytics                           │
 ├────────────────────────────────────���┤
 │ Time Period: [Last 30 Days ▼]       │
