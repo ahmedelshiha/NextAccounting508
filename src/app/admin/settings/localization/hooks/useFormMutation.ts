@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useFetchWithTimeout } from './useFetchWithTimeout'
 import { apiCache } from '../utils/cache'
-import { useState } from 'react'
 
 export type MutateOptions = {
   headers?: Record<string, string>
