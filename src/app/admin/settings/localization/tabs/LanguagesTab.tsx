@@ -45,39 +45,24 @@ export const LanguagesTab: React.FC = () => {
     }
   }
 
+  const { saving: mutationSaving, mutate } = useFormMutation()
+
   async function saveLanguage(language: LanguageRow) {
-    setSaving(true)
     setError(null)
-    try {
-      if (editingLanguage) {
-        const r = await fetch(`/api/admin/languages/${encodeURIComponent(editingLanguage.code)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(language),
-        })
-        const d = await r.json()
-        if (!r.ok) throw new Error(d?.error || 'Failed to update language')
-        toast.success('Language updated successfully')
-      } else {
-        const r = await fetch('/api/admin/languages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(language),
-        })
-        const d = await r.json()
-        if (!r.ok) throw new Error(d?.error || 'Failed to create language')
-        toast.success('Language added successfully')
-      }
-      setModalOpen(false)
-      setEditingLanguage(null)
-      invalidateLanguageCaches() // Invalidate cache after mutation
-      await loadLanguages()
-    } catch (e: any) {
-      setError(e?.message || (editingLanguage ? 'Failed to update language' : 'Failed to create language'))
-      toast.error(e?.message || (editingLanguage ? 'Failed to update language' : 'Failed to create language'))
-    } finally {
-      setSaving(false)
+    const method = editingLanguage ? 'PUT' : 'POST'
+    const url = editingLanguage ? `/api/admin/languages/${encodeURIComponent(editingLanguage.code)}` : '/api/admin/languages'
+
+    const res = await mutate(url as string, method as any, language, { invalidate: ['api/admin/languages'] })
+    if (!res.ok) {
+      setError(res.error || (editingLanguage ? 'Failed to update language' : 'Failed to create language'))
+      toast.error(res.error || (editingLanguage ? 'Failed to update language' : 'Failed to create language'))
+      return
     }
+
+    toast.success(editingLanguage ? 'Language updated successfully' : 'Language added successfully')
+    setModalOpen(false)
+    setEditingLanguage(null)
+    await loadLanguages()
   }
 
   async function toggleLanguage(code: string) {
