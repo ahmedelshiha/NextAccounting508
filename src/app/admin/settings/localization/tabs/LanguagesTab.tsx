@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react'
 import { useLocalizationContext } from '../LocalizationProvider'
+import { LanguageEditModal } from '../components/LanguageEditModal'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { TextField, SelectField, Toggle } from '@/components/admin/settings/FormField'
 import { toast } from 'sonner'
-import { Plus, Trash2, Download, Upload, Star } from 'lucide-react'
+import { Plus, Trash2, Download, Upload, Star, Edit2 } from 'lucide-react'
 import type { LanguageRow } from '../types'
 
 export const LanguagesTab: React.FC = () => {
