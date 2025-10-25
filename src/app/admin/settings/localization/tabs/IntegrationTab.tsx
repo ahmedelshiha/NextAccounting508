@@ -555,15 +555,15 @@ export const IntegrationTab: React.FC = () => {
                     </li>
                     <li className="flex gap-3">
                       <span className="font-semibold text-gray-900 flex-shrink-0">2.</span>
-                      <span>Click "Add new webhook"</span>
+                      <span>Click &quot;Add new webhook&quot;</span>
                     </li>
                     <li className="flex gap-3">
                       <span className="font-semibold text-gray-900 flex-shrink-0">3.</span>
-                      <span>Paste the URL above in the "Target URL" field</span>
+                      <span>Paste the URL above in the &quot;Target URL&quot; field</span>
                     </li>
                     <li className="flex gap-3">
                       <span className="font-semibold text-gray-900 flex-shrink-0">4.</span>
-                      <span>Select events: "Translation completed" and "Translation updated"</span>
+                      <span>Select events: &quot;Translation completed&quot; and &quot;Translation updated&quot;</span>
                     </li>
                     <li className="flex gap-3">
                       <span className="font-semibold text-gray-900 flex-shrink-0">5.</span>
