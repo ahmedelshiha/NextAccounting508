@@ -48,7 +48,29 @@ export const OrganizationTab: React.FC = () => {
     }
   }
 
+  function validateSettings(): string | null {
+    const defaultLang = languages.find(l => l.code === orgSettings.defaultLanguage)
+    const fallbackLang = languages.find(l => l.code === orgSettings.fallbackLanguage)
+
+    if (!defaultLang || !defaultLang.enabled) {
+      return 'Default language must be an enabled language'
+    }
+
+    if (!fallbackLang || !fallbackLang.enabled) {
+      return 'Fallback language must be an enabled language'
+    }
+
+    return null
+  }
+
   async function saveOrgSettings() {
+    const validationError = validateSettings()
+    if (validationError) {
+      setError(validationError)
+      toast.error(validationError)
+      return
+    }
+
     setSaving(true)
     setError(null)
     try {
@@ -78,6 +100,9 @@ export const OrganizationTab: React.FC = () => {
       setSaving(false)
     }
   }
+
+  const isDefaultLanguageDisabled = !languages.find(l => l.code === orgSettings.defaultLanguage)?.enabled
+  const isFallbackLanguageDisabled = !languages.find(l => l.code === orgSettings.fallbackLanguage)?.enabled
 
   if (loading) {
     return <div className="text-gray-600 py-8 text-center">Loading settings...</div>
