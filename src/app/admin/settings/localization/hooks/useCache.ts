@@ -101,7 +101,7 @@ export function useCache() {
     // Non-GET requests (POST, PUT, DELETE) are not cached by default
     const result = await fetchPromise
     return result
-  }, [])
+  }, [fetchWithTimeout])
 
   /**
    * Invalidate cache for a specific URL pattern
