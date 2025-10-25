@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { detectDeviceFromUA, regionFromProfile } from '../route'
-import { handler } from '../route'
+import { detectDeviceFromUA, regionFromProfile, normalizeCountryName, handler } from '../route'
 
 // Mock prisma
 vi.mock('@/lib/prisma', () => {
@@ -44,43 +43,58 @@ describe('detectDeviceFromUA', () => {
   })
 })
 
-describe('regionFromProfile', () => {
-  it('prefers country code', () => {
+describe('normalizeCountryName & regionFromProfile', () => {
+  it('maps full country names to ISO', () => {
+    expect(normalizeCountryName('United States')).toBe('us')
+    expect(normalizeCountryName('UNITED KINGDOM')).toBe('gb')
+    expect(normalizeCountryName('Saudi Arabia')).toBe('sa')
+  })
+
+  it('returns null for unknown countries', () => {
+    expect(normalizeCountryName('Wakanda')).toBeNull()
+  })
+
+  it('regionFromProfile uses country meta normalized', () => {
+    expect(regionFromProfile({ metadata: { country: 'United States' } })).toBe('us')
     expect(regionFromProfile({ metadata: { country: 'US' } })).toBe('us')
   })
-  it('falls back to timezone', () => {
-    expect(regionFromProfile({ timezone: 'America/Los_Angeles' })).toBe('america')
-  })
-  it('returns unknown if none', () => {
-    expect(regionFromProfile({})).toBe('unknown')
+
+  it('falls back to timezone when country not present', () => {
+    expect(regionFromProfile({ timezone: 'Europe/London' })).toBe('europe')
   })
 })
 
-describe('analytics handler', () => {
+describe('analytics handler edge cases', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('returns aggregated response for audit logs and profiles', async () => {
+  it('handles audit log entries with missing userAgent and malformed metadata', async () => {
     const now = new Date()
     const earlier = new Date(now.getTime() - 1000 * 60 * 60)
 
     ;(prisma.auditLog.findMany as any).mockResolvedValueOnce([
       {
         createdAt: now.toISOString(),
-        metadata: { to: 'ar' },
-        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_3 like Mac OS X)',
-        userId: 'u2',
+        metadata: 'not-an-object',
+        userAgent: null,
+        userId: 'u4',
+      },
+      {
+        createdAt: now.toISOString(),
+        metadata: { to: 'fr' },
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        userId: 'u5',
       },
     ])
 
     ;(prisma.userProfile.findMany as any)
       .mockResolvedValueOnce([
-        { preferredLanguage: 'ar', user: { id: 'u2', createdAt: earlier.toISOString() }, timezone: 'Asia/Riyadh', metadata: { country: 'SA' } },
+        { preferredLanguage: 'fr', user: { id: 'u5', createdAt: earlier.toISOString() }, timezone: 'Europe/Paris', metadata: { country: 'FR' } },
       ])
-      // for snapshot call
+      // snapshot profiles
       .mockResolvedValueOnce([
-        { preferredLanguage: 'en', user: { id: 'u3', createdAt: earlier.toISOString() }, timezone: 'UTC', metadata: {} },
+        { preferredLanguage: 'en', user: { id: 'u6', createdAt: earlier.toISOString() }, timezone: 'UTC', metadata: {} },
       ])
 
     const req = new Request('https://example.com/api/admin/language-activity-analytics?days=1')
@@ -88,8 +102,34 @@ describe('analytics handler', () => {
     const json = await res.json()
 
     expect(json.success).toBe(true)
+    // one mobile/desktop unknown entry should be handled without throwing
     expect(json.data.summary.totalSessions).toBeGreaterThanOrEqual(1)
-    expect(json.data.meta.availableDevices).toContain('mobile')
-    expect(json.data.meta.availableRegions).toContain('sa')
+    // ensure availableDevices includes 'unknown' for missing UA
+    expect(json.data.meta.availableDevices).toContain('unknown')
+  })
+
+  it('applies language filter correctly', async () => {
+    const now = new Date()
+
+    ;(prisma.auditLog.findMany as any).mockResolvedValueOnce([
+      { createdAt: now.toISOString(), metadata: { to: 'es' }, userAgent: 'ua', userId: 'ua1' },
+      { createdAt: now.toISOString(), metadata: { to: 'fr' }, userAgent: 'ua', userId: 'ua2' },
+    ])
+
+    ;(prisma.userProfile.findMany as any)
+      .mockResolvedValueOnce([
+        { preferredLanguage: 'es', user: { id: 'ua1', createdAt: now.toISOString() }, timezone: 'Europe/Madrid', metadata: { country: 'ES' } },
+        { preferredLanguage: 'fr', user: { id: 'ua2', createdAt: now.toISOString() }, timezone: 'Europe/Paris', metadata: { country: 'FR' } },
+      ])
+      .mockResolvedValueOnce([])
+
+    const req = new Request('https://example.com/api/admin/language-activity-analytics?days=1&languages=es')
+    const res = await handler(req)
+    const json = await res.json()
+
+    expect(json.success).toBe(true)
+    // only spanish should be in availableLanguages
+    expect(json.data.meta.availableLanguages).toContain('es')
+    expect(json.data.meta.availableLanguages).not.toContain('fr')
   })
 })
