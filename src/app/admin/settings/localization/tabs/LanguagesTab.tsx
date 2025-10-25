@@ -276,14 +276,27 @@ export const LanguagesTab: React.FC = () => {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
-                      <button
-                        onClick={() => deleteLanguage(lang.code)}
-                        disabled={saving || lang.code === 'en'}
-                        className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded border border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Delete
-                      </button>
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => {
+                            setEditingLanguage(lang)
+                            setModalOpen(true)
+                          }}
+                          disabled={saving}
+                          className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded border border-blue-300 text-blue-700 hover:bg-blue-50 disabled:opacity-50"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteLanguage(lang.code)}
+                          disabled={saving || lang.code === 'en'}
+                          className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded border border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Delete
+                        </button>
+                      </div>
                     </PermissionGate>
                   </td>
                 </tr>
