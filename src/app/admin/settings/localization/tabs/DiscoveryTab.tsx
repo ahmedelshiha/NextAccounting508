@@ -27,32 +27,14 @@ export const DiscoveryTab: React.FC = () => {
 
   async function runDiscoveryAudit() {
     setAuditRunning(true)
-    setSaving(true)
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout for audit
-
-      const r = await fetch('/api/admin/translations/discover', {
-        method: 'POST',
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      const d = await r.json()
-
-      if (r.ok && d.data) {
-        setAuditResults(d.data)
-        toast.success('Discovery audit completed')
-      } else {
-        toast.error('Failed to run discovery audit')
-      }
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Audit request timed out' : e.message || 'Failed to run discovery audit'
-      toast.error(message)
-    } finally {
-      setAuditRunning(false)
-      setSaving(false)
+    const res = await mutate('/api/admin/translations/discover', 'POST', undefined, { invalidate: [] })
+    if (res.ok && res.data) {
+      setAuditResults(res.data as AuditResult)
+      toast.success('Discovery audit completed')
+    } else {
+      toast.error(res.error || 'Failed to run discovery audit')
     }
+    setAuditRunning(false)
   }
 
   async function scheduleAudit() {
