@@ -141,29 +141,17 @@ export const IntegrationTab: React.FC = () => {
   }
 
   async function saveCrowdinIntegration() {
-    setSaving(true)
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/crowdin-integration', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(crowdinIntegration),
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to save Crowdin integration')
-      invalidateCrowdinCaches() // Invalidate cache after mutation
+    const res = await mutate(
+      '/api/admin/crowdin-integration',
+      'POST',
+      crowdinIntegration,
+      { invalidate: [/crowdin-integration/] }
+    )
+    if (res.ok) {
       toast.success('Crowdin integration saved')
       await loadCrowdinIntegration()
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Request timed out' : e?.message || 'Failed to save integration'
-      toast.error(message)
-    } finally {
-      setSaving(false)
+    } else {
+      toast.error(res.error || 'Failed to save integration')
     }
   }
 
