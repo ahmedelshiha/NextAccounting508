@@ -433,6 +433,14 @@ describe('IntegrationTab', () => {
       lastSyncStatus: 'success' as const,
     }
 
+    const mockWebhook = {
+      webhookUrl: 'https://example.com/webhook',
+      isActive: true,
+      events: ['translation.completed'],
+      lastDelivery: new Date().toISOString(),
+      deliveriesCount: 10,
+    }
+
     global.fetch = vi.fn()
       .mockImplementationOnce(() =>
         Promise.resolve({
@@ -450,6 +458,12 @@ describe('IntegrationTab', () => {
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ data: { logs: [] } }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: mockWebhook }),
         } as Response)
       )
 
