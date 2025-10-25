@@ -5,7 +5,7 @@ import { useLocalizationContext } from '../LocalizationProvider'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { toast } from 'sonner'
-import { Code2, RefreshCw } from 'lucide-react'
+import { Code2, RefreshCw, Download, Check, Plus } from 'lucide-react'
 
 interface AuditResult {
   keysInCode: number
@@ -20,6 +20,8 @@ export const DiscoveryTab: React.FC = () => {
   const [auditRunning, setAuditRunning] = useState(false)
   const [auditResults, setAuditResults] = useState<AuditResult | null>(null)
   const [scheduledAudit, setScheduledAudit] = useState<'none' | 'daily' | 'weekly'>('none')
+  const [approvedKeys, setApprovedKeys] = useState<Set<string>>(new Set())
+  const [bulkAddLoading, setBulkAddLoading] = useState(false)
 
   async function runDiscoveryAudit() {
     setAuditRunning(true)
@@ -78,6 +80,93 @@ export const DiscoveryTab: React.FC = () => {
     }
   }
 
+  function toggleKeyApproval(key: string) {
+    const newApproved = new Set(approvedKeys)
+    if (newApproved.has(key)) {
+      newApproved.delete(key)
+    } else {
+      newApproved.add(key)
+    }
+    setApprovedKeys(newApproved)
+  }
+
+  function exportResults(format: 'json' | 'csv') {
+    if (!auditResults) return
+
+    if (format === 'json') {
+      const data = JSON.stringify(auditResults, null, 2)
+      const blob = new Blob([data], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `discovery-audit-${new Date().toISOString().split('T')[0]}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Audit results exported as JSON')
+    } else {
+      const rows = [['Type', 'Key', 'Value']]
+
+      auditResults.orphanedKeys.forEach(key => {
+        rows.push(['Orphaned Key', key, ''])
+      })
+
+      Object.entries(auditResults.missingTranslations).forEach(([lang, keys]) => {
+        keys.forEach(key => {
+          rows.push(['Missing Translation', key, lang])
+        })
+      })
+
+      auditResults.namingIssues.forEach(issue => {
+        rows.push(['Naming Issue', issue.key, issue.issue])
+      })
+
+      const csv = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `discovery-audit-${new Date().toISOString().split('T')[0]}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Audit results exported as CSV')
+    }
+  }
+
+  async function bulkAddApprovedKeys() {
+    if (approvedKeys.size === 0) {
+      toast.error('No keys selected for approval')
+      return
+    }
+
+    setBulkAddLoading(true)
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+      const keysArray = Array.from(approvedKeys)
+      const r = await fetch('/api/admin/translations/discover/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keys: keysArray }),
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+
+      if (r.ok) {
+        const approvedCount = keysArray.length
+        toast.success(`Added ${approvedCount} key(s) to translation system`)
+        setApprovedKeys(new Set())
+      } else {
+        toast.error('Failed to add keys')
+      }
+    } catch (e: any) {
+      const message = e?.name === 'AbortError' ? 'Request timed out' : e.message || 'Failed to add keys'
+      toast.error(message)
+    } finally {
+      setBulkAddLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
@@ -111,7 +200,25 @@ export const DiscoveryTab: React.FC = () => {
         {/* Audit Results */}
         {auditResults && (
           <div className="rounded-lg border bg-white p-6 space-y-6">
-            <h3 className="text-lg font-semibold text-gray-900">Audit Results</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">Audit Results</h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => exportResults('json')}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <Download className="h-4 w-4" />
+                  Export JSON
+                </button>
+                <button
+                  onClick={() => exportResults('csv')}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <Download className="h-4 w-4" />
+                  Export CSV
+                </button>
+              </div>
+            </div>
 
             {/* Summary Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -145,11 +252,17 @@ export const DiscoveryTab: React.FC = () => {
                   </span>
                   Orphaned Keys (Not Used in Code)
                 </h4>
-                <div className="rounded-lg border bg-orange-50 p-4 space-y-2">
+                <div className="rounded-lg border bg-orange-50 p-4 space-y-3">
                   {auditResults.orphanedKeys.slice(0, 10).map(key => (
-                    <p key={key} className="text-sm text-orange-900">
-                      • <code className="text-xs bg-orange-100 px-2 py-1 rounded">{key}</code>
-                    </p>
+                    <label key={key} className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={approvedKeys.has(key)}
+                        onChange={() => toggleKeyApproval(key)}
+                        className="w-4 h-4 text-orange-600 rounded"
+                      />
+                      <code className="text-xs bg-orange-100 px-2 py-1 rounded flex-1">{key}</code>
+                    </label>
                   ))}
                   {auditResults.orphanedKeys.length > 10 && (
                     <p className="text-sm text-orange-700 font-medium">
@@ -172,12 +285,18 @@ export const DiscoveryTab: React.FC = () => {
                 <div className="space-y-4">
                   {Object.entries(auditResults.missingTranslations).map(([lang, keys]) => (
                     <div key={lang} className="rounded-lg border bg-red-50 p-4">
-                      <p className="font-medium text-gray-900 mb-2">{lang.toUpperCase()}</p>
-                      <div className="space-y-1">
+                      <p className="font-medium text-gray-900 mb-3">{lang.toUpperCase()}</p>
+                      <div className="space-y-2">
                         {keys.slice(0, 5).map(key => (
-                          <p key={key} className="text-sm text-gray-700">
-                            • <code className="text-xs bg-red-100 px-2 py-1 rounded">{key}</code>
-                          </p>
+                          <label key={key} className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={approvedKeys.has(key)}
+                              onChange={() => toggleKeyApproval(key)}
+                              className="w-4 h-4 text-red-600 rounded"
+                            />
+                            <code className="text-xs bg-red-100 px-2 py-1 rounded flex-1">{key}</code>
+                          </label>
                         ))}
                         {keys.length > 5 && (
                           <p className="text-sm text-gray-700 font-medium">+ {keys.length - 5} more keys</p>
@@ -204,6 +323,29 @@ export const DiscoveryTab: React.FC = () => {
                       • <code className="text-xs bg-yellow-100 px-2 py-1 rounded">{issue.key}</code> - {issue.issue}
                     </p>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Bulk Add Approved Keys */}
+            {approvedKeys.size > 0 && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Check className="h-5 w-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium text-blue-900">{approvedKeys.size} key(s) selected</p>
+                      <p className="text-sm text-blue-800">Ready to add to translation system</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={bulkAddApprovedKeys}
+                    disabled={bulkAddLoading || saving}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 font-medium"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {bulkAddLoading ? 'Adding...' : 'Add Keys'}
+                  </button>
                 </div>
               </div>
             )}
