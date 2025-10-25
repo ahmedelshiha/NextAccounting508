@@ -35,3 +35,9 @@
 # E2E plugin disabled
 # [[plugins]]
 #   package = "./netlify/plugins/run-e2e"
+
+# Scheduled Functions
+[[functions]]
+  name = "cron-translation-metrics"
+  schedule = "@daily"
+  # Runs every day at midnight UTC (0 0 * * * in cron syntax)

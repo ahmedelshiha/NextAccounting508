@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { requireTenantContext } from '@/lib/tenant-utils'
-import { PreferencesSchema, isValidTimezone } from '@/schemas/user-profile'
+import { PreferencesSchema, isValidTimezone, createPreferencesSchema } from '@/schemas/user-profile'
 import { logAudit } from '@/lib/audit'
 import { withTenantContext } from '@/lib/api-wrapper'
 import * as Sentry from '@sentry/nextjs'
+import { getEnabledLanguageCodes } from '@/lib/language-registry'
+
+/**
+ * Sanitize request/response payloads for logging (remove PII)
+ * Allows only non-sensitive fields
+ */
+function sanitizePayloadForLogging(payload: Record<string, any>): Record<string, any> {
+  const allowedFields = ['timezone', 'preferredLanguage', 'bookingEmailConfirm', 'bookingEmailReminder', 'bookingEmailReschedule', 'bookingEmailCancellation', 'bookingSmsReminder', 'bookingSmsConfirmation']
+  const sanitized: Record<string, any> = {}
+  for (const field of allowedFields) {
+    if (field in payload) {
+      sanitized[field] = payload[field]
+    }
+  }
+  return sanitized
+}
 
 export const GET = withTenantContext(async (request: NextRequest) => {
   try {
@@ -73,8 +89,33 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 
     if (!user) {
       console.warn('Preferences GET: User not found', { email, tenantId: tid })
+
+      // Add breadcrumb for user not found
+      try {
+        Sentry.addBreadcrumb({
+          category: 'user',
+          message: 'User not found when fetching preferences',
+          level: 'warning',
+          data: { email, tenantId: tid },
+        })
+      } catch {}
+
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
+
+    // Add breadcrumb for successful fetch
+    try {
+      Sentry.addBreadcrumb({
+        category: 'user.preferences',
+        message: 'User preferences fetched',
+        level: 'info',
+        data: {
+          userId: user.id,
+          tenantId: tid,
+          hasProfile: !!user.userProfile,
+        },
+      })
+    } catch {}
 
     // Return preferences from user profile
     const profile = user.userProfile
@@ -131,25 +172,77 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Rate limit: 20 writes/minute per IP
+    const email = userEmail as string
+    const tid = tenantId as string
+
+    // Rate limit: 20 writes/minute per IP, also per-user to avoid shared-IP false positives
     try {
       const { applyRateLimit, getClientIp } = await import('@/lib/rate-limit')
       const ip = getClientIp(request as unknown as Request)
-      const rl = await applyRateLimit(`user:preferences:put:${ip}`, 20, 60_000)
-      if (rl && rl.allowed === false) {
+      const userId = ctx?.userId || 'anonymous'
+
+      // Check per-IP rate limit
+      const ipRateLimit = await applyRateLimit(`user:preferences:put:ip:${ip}`, 20, 60_000)
+      if (ipRateLimit && ipRateLimit.allowed === false) {
+        // Add breadcrumb for rate limit hit
+        try {
+          Sentry.addBreadcrumb({
+            category: 'rate_limit',
+            message: 'User preferences rate limit exceeded (IP)',
+            level: 'warning',
+            data: { ip, userId, tenantId: tid },
+          })
+        } catch {}
+        return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+      }
+
+      // Check per-user rate limit (more lenient to avoid blocking legitimate users on shared IPs)
+      const userRateLimit = await applyRateLimit(`user:preferences:put:user:${userId}`, 40, 60_000)
+      if (userRateLimit && userRateLimit.allowed === false) {
+        // Add breadcrumb for rate limit hit
+        try {
+          Sentry.addBreadcrumb({
+            category: 'rate_limit',
+            message: 'User preferences rate limit exceeded (user)',
+            level: 'warning',
+            data: { userId, tenantId: tid },
+          })
+        } catch {}
         return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
       }
     } catch {}
 
-    const email = userEmail as string
-    const tid = tenantId as string
-
     const body = await request.json().catch(() => ({}))
 
-    // Validate using Zod schema
-    const validationResult = PreferencesSchema.safeParse(body)
+    // Validate using Zod schema with dynamic language codes
+    let validationResult
+    try {
+      const enabledLanguages = await getEnabledLanguageCodes()
+      const dynamicSchema = createPreferencesSchema(enabledLanguages)
+      validationResult = dynamicSchema.safeParse(body)
+    } catch (error) {
+      console.error('Failed to get enabled languages for validation', error)
+      // Fallback to static schema if language registry unavailable
+      validationResult = PreferencesSchema.safeParse(body)
+    }
+
     if (!validationResult.success) {
       const messages = validationResult.error.issues.map((i) => i.message).join('; ')
+
+      // Add breadcrumb for validation error
+      try {
+        Sentry.addBreadcrumb({
+          category: 'validation',
+          message: 'User preferences validation failed',
+          level: 'warning',
+          data: {
+            tenantId: tid,
+            errorCount: validationResult.error.issues.length,
+            errors: validationResult.error.issues.map((i) => ({ field: i.path.join('.'), code: i.code })),
+          },
+        })
+      } catch {}
+
       return NextResponse.json({ error: messages }, { status: 400 })
     }
 
@@ -185,11 +278,13 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       user = await prisma.user.findFirst({ where: { email: email, tenantId: tid } })
     } catch (dbError) {
       const dbMsg = dbError instanceof Error ? dbError.message : String(dbError)
+      const sanitizedPayload = sanitizePayloadForLogging(validationResult.data)
       console.error('Preferences PUT: Database query failed', {
         tenantId: tid,
         error: dbMsg,
+        payloadKeys: Object.keys(sanitizedPayload),
       })
-      Sentry.captureException(dbError as any, { extra: { tenantId: tid, payloadKeys: Object.keys(validationResult.data) } })
+      Sentry.captureException(dbError as any, { extra: { tenantId: tid, payloadKeys: Object.keys(sanitizedPayload) } })
       if (dbMsg.includes('Database is not configured')) {
         return NextResponse.json({ error: 'Database is not configured' }, { status: 503 })
       }
@@ -198,6 +293,17 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
 
     if (!user) {
       console.warn('Preferences PUT: User not found', { tenantId: tid })
+
+      // Add breadcrumb for user not found
+      try {
+        Sentry.addBreadcrumb({
+          category: 'user',
+          message: 'User not found when updating preferences',
+          level: 'warning',
+          data: { email: email, tenantId: tid },
+        })
+      } catch {}
+
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
@@ -231,13 +337,32 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
         },
       })
     } catch (dbErr) {
+      const sanitizedPayload = sanitizePayloadForLogging(validationResult.data)
+      const errorMsg = dbErr instanceof Error ? dbErr.message : String(dbErr)
       console.error('Preferences PUT: Database upsert failed', {
         tenantId: tid,
         userId: user.id,
-        payloadKeys: Object.keys(validationResult.data),
-        error: dbErr instanceof Error ? dbErr.message : String(dbErr),
+        payloadKeys: Object.keys(sanitizedPayload),
+        error: errorMsg,
       })
-      Sentry.captureException(dbErr as any, { extra: { tenantId: tid, userId: user.id, payloadKeys: Object.keys(validationResult.data) } })
+
+      // Add Sentry breadcrumb for failed update
+      try {
+        Sentry.addBreadcrumb({
+          category: 'user.preferences',
+          message: 'User preferences update failed',
+          level: 'error',
+          data: {
+            userId: user.id,
+            tenantId: tid,
+            fieldsUpdated: Object.keys(sanitizedPayload),
+            error: errorMsg,
+            errorType: 'database_upsert',
+          },
+        })
+      } catch {}
+
+      Sentry.captureException(dbErr as any, { extra: { tenantId: tid, userId: user.id, payloadKeys: Object.keys(sanitizedPayload) } })
       return NextResponse.json({ error: 'Failed to update preferences: database error' }, { status: 500 })
     }
 
@@ -247,6 +372,21 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
         actorId: user.id,
         targetId: user.id,
         details: { fields: Object.keys(body) },
+      })
+    } catch {}
+
+    // Add Sentry breadcrumb for monitoring preference updates
+    try {
+      Sentry.addBreadcrumb({
+        category: 'user.preferences',
+        message: 'User preferences updated',
+        level: 'info',
+        data: {
+          userId: user.id,
+          tenantId: tid,
+          fieldsUpdated: Object.keys(validationResult.data),
+          success: true,
+        },
       })
     } catch {}
 
