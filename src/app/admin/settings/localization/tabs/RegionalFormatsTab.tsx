@@ -74,23 +74,33 @@ export const RegionalFormatsTab: React.FC = () => {
   }
 
   async function saveFormat(languageCode: string) {
+    const format = formats[languageCode]
+    const newErrors = validateFormats(format)
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      toast.error('Please fix validation errors before saving')
+      return
+    }
+
     setSaving(true)
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
 
       const r = await fetch('/api/admin/regional-formats', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           language: languageCode,
-          ...formats[languageCode],
+          ...format,
         }),
         signal: controller.signal,
       })
       clearTimeout(timeoutId)
 
       if (r.ok) {
+        setErrors({})
         toast.success(`Regional format saved for ${languageCode}`)
         await loadFormats()
       } else {
