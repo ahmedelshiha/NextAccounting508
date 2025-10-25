@@ -285,12 +285,18 @@ export const DiscoveryTab: React.FC = () => {
                 <div className="space-y-4">
                   {Object.entries(auditResults.missingTranslations).map(([lang, keys]) => (
                     <div key={lang} className="rounded-lg border bg-red-50 p-4">
-                      <p className="font-medium text-gray-900 mb-2">{lang.toUpperCase()}</p>
-                      <div className="space-y-1">
+                      <p className="font-medium text-gray-900 mb-3">{lang.toUpperCase()}</p>
+                      <div className="space-y-2">
                         {keys.slice(0, 5).map(key => (
-                          <p key={key} className="text-sm text-gray-700">
-                            • <code className="text-xs bg-red-100 px-2 py-1 rounded">{key}</code>
-                          </p>
+                          <label key={key} className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={approvedKeys.has(key)}
+                              onChange={() => toggleKeyApproval(key)}
+                              className="w-4 h-4 text-red-600 rounded"
+                            />
+                            <code className="text-xs bg-red-100 px-2 py-1 rounded flex-1">{key}</code>
+                          </label>
                         ))}
                         {keys.length > 5 && (
                           <p className="text-sm text-gray-700 font-medium">+ {keys.length - 5} more keys</p>
