@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLocalizationContext } from '../LocalizationProvider'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
@@ -66,7 +66,7 @@ export const TranslationsTab: React.FC = () => {
                 <p className="text-3xl font-bold text-blue-600 mt-2">{status.summary.arCoveragePct}</p>
               </div>
               <div className="rounded-lg border bg-purple-50 p-4">
-                <p className="text-sm font-medium text-gray-600">हिन्���ी</p>
+                <p className="text-sm font-medium text-gray-600">हिन्दी</p>
                 <p className="text-3xl font-bold text-purple-600 mt-2">{status.summary.hiCoveragePct}</p>
               </div>
             </div>
