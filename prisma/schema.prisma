@@ -165,10 +165,42 @@ model VerificationToken {
   @@map("verificationtokens")
 }
 
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum PriorityStatus {
+  OPEN
+  IN_PROGRESS
+  BLOCKED
+  DONE
+}
+
 enum TenantStatus {
   ACTIVE
   SUSPENDED
   DECOMMISSIONED
+}
+
+model TranslationPriority {
+  id                String    @id @default(cuid())
+  tenantId          String
+  key               String
+  languageCode      String?   @db.VarChar(10)
+  priority          Priority  @default(MEDIUM)
+  status            PriorityStatus @default(OPEN)
+  dueDate           DateTime?
+  assignedToUserId  String?
+  notes             String?   @db.Text
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([tenantId, key, languageCode])
+  @@index([tenantId])
+  @@map("translation_priorities")
 }
 
 model Tenant {
