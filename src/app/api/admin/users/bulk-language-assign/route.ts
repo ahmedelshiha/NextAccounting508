@@ -77,14 +77,14 @@ export const POST = async (request: Request) => {
         })
 
         await logAudit({
-          userId: ctx.userId,
           action: 'user_language_assignment_bulk',
-          resourceType: 'user',
-          resourceId: userId,
-          changes: {
+          actorId: ctx.userId,
+          targetId: userId,
+          details: {
+            resourceType: 'user',
             targetLanguage,
+            tenantId,
           },
-          tenantId,
         })
 
         updated++
