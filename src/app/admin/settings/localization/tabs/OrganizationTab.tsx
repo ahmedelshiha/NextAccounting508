@@ -293,10 +293,20 @@ export const OrganizationTab: React.FC = () => {
               {/* Default Language Preview */}
               <div className="rounded-lg border bg-gray-50 p-4">
                 <p className="text-xs font-semibold text-gray-600 uppercase mb-3">New User Default</p>
-                <div className="bg-white rounded border border-gray-300 px-3 py-2">
-                  <p className="text-sm text-gray-600">
+                <div className={`rounded border px-3 py-2 flex items-center gap-2 ${
+                  isDefaultLanguageDisabled
+                    ? 'bg-red-50 border-red-300'
+                    : 'bg-white border-gray-300'
+                }`}>
+                  {isDefaultLanguageDisabled ? (
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  )}
+                  <p className={`text-sm ${isDefaultLanguageDisabled ? 'text-red-700' : 'text-gray-600'}`}>
                     {languages.find(l => l.code === orgSettings.defaultLanguage)?.flag}{' '}
                     {languages.find(l => l.code === orgSettings.defaultLanguage)?.name}
+                    {isDefaultLanguageDisabled && ' (Disabled)'}
                   </p>
                 </div>
               </div>
