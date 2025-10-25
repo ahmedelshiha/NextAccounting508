@@ -534,9 +534,15 @@ PHASE 0 (Now)
 
 ---
 
-## TIER 1: High-Priority UX/Functionality Improvements
+## Legacy Implementation Details (Reference)
 
-#### 1.1 Languages Tab Enhancement - Language Selector Dropdown
+These sections below are kept for reference but superseded by the new PHASE-based plan above.
+
+---
+
+## TIER 1: High-Priority UX/Functionality Improvements (DEPRECATED - See PHASE 1)
+
+#### 1.1 Languages Tab Enhancement - Language Selector Dropdown (See PHASE 1.1)
 **Goal:** Replace manual language code entry with dropdown of popular languages + custom option
 
 **Tasks:**
@@ -1060,7 +1066,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌──────────────────────────────────────┐
 │ Translation Platforms - Crowdin       │
-├──���───────────────────────────────────┤
+├──────────────────────────────────────┤
 │ Project ID: [__________________]    │
 �� API Token:  [__________________]    │
 │ [Test Connection] ✓ Connected       │
@@ -1116,7 +1122,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌───────────────────────────────────────┐
 │ Translation Dashboard                 │
-├────────────��─────��────────────────────┤
+├────────────��──────────────────────────┤
 │ Coverage Summary:                     │
 │ Total Keys: 1,247                     │
 ��                                      │
@@ -1175,7 +1181,7 @@ Heatmap: [Language usage over last 30 days]
 │ Time Period: [Last 30 Days ▼]       │
 │                                     │
 │ Language Distribution:              │
-│ ┌────────────────���─────────────���   │
+│ ┌──────────────────────────────���   │
 │ │ English: 45%                 │   │
 │ │ Arabic: 35%                  │   │
 │ │ Hindi: 15%                   │   │
@@ -1254,7 +1260,7 @@ Heatmap: [Language usage over last 30 days]
 │ [View Detailed Report] [Export]     │
 │ [Approve Discovered Keys]           │
 │ [Schedule Weekly Audits]            │
-└────────���───────────────���────────────┘
+└────────────────────────���────────────┘
 ```
 
 **API Endpoints:**
