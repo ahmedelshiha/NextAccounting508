@@ -202,104 +202,18 @@ export const LanguagesTab: React.FC = () => {
               disabled={saving}
             />
           </label>
-          {!showAddForm && (
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="h-4 w-4" />
-              Add Language
-            </button>
-          )}
+          <button
+            onClick={() => {
+              setEditingLanguage(null)
+              setModalOpen(true)
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            Add Language
+          </button>
         </div>
       </PermissionGate>
-
-      {showAddForm && (
-        <div className="rounded-lg border bg-white p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Language</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <TextField
-                label="Language Code"
-                value={newLang.code}
-                onChange={v => setNewLang(s => ({ ...s, code: v }))}
-                placeholder="e.g. fr"
-              />
-              <p className="text-xs text-gray-600 mt-1">2-3 letter language code (lowercase)</p>
-            </div>
-            <div>
-              <TextField
-                label="English Name"
-                value={newLang.name}
-                onChange={v => setNewLang(s => ({ ...s, name: v }))}
-                placeholder="e.g. French"
-              />
-            </div>
-            <div>
-              <TextField
-                label="Native Name"
-                value={newLang.nativeName}
-                onChange={v => setNewLang(s => ({ ...s, nativeName: v }))}
-                placeholder="e.g. Français"
-              />
-            </div>
-            <div>
-              <TextField
-                label="BCP47 Locale"
-                value={newLang.bcp47Locale}
-                onChange={v => setNewLang(s => ({ ...s, bcp47Locale: v }))}
-                placeholder="e.g. fr-FR"
-              />
-            </div>
-            <div>
-              <SelectField
-                label="Text Direction"
-                value={newLang.direction}
-                onChange={v => setNewLang(s => ({ ...s, direction: v as 'ltr' | 'rtl' }))}
-                options={[
-                  { value: 'ltr', label: 'Left-to-Right' },
-                  { value: 'rtl', label: 'Right-to-Left' },
-                ]}
-              />
-            </div>
-            <div>
-              <TextField
-                label="Flag Emoji"
-                value={newLang.flag || ''}
-                onChange={v => setNewLang(s => ({ ...s, flag: v }))}
-                placeholder="e.g. 🇫🇷"
-              />
-            </div>
-          </div>
-          <div className="flex gap-3 justify-end">
-            <button
-              onClick={() => {
-                setShowAddForm(false)
-                setNewLang({
-                  code: '',
-                  name: '',
-                  nativeName: '',
-                  direction: 'ltr',
-                  flag: '🌐',
-                  bcp47Locale: '',
-                  enabled: true,
-                  featured: false,
-                })
-              }}
-              className="px-4 py-2 rounded-md text-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={createLanguage}
-              disabled={saving || !newLang.code || !newLang.name || !newLang.nativeName || !newLang.bcp47Locale}
-              className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
-            >
-              {saving ? 'Adding...' : 'Add Language'}
-            </button>
-          </div>
-        </div>
-      )}
 
       <div className="rounded-lg border bg-white overflow-hidden">
         <div className="overflow-x-auto">
