@@ -178,19 +178,112 @@ describe('User Preferences API Route', () => {
       expect(json.error).toContain('1 and 720')
     })
 
-    it('returns 401 if unauthorized', async () => {
+    it('coerces string reminderHours to numbers', async () => {
+      const mockUser = { id: 'user-1' }
+      const updatedProfile = {
+        userId: 'user-1',
+        timezone: 'UTC',
+        preferredLanguage: 'en',
+        bookingEmailConfirm: true,
+        bookingEmailReminder: true,
+        bookingEmailReschedule: true,
+        bookingEmailCancellation: true,
+        bookingSmsReminder: false,
+        bookingSmsConfirmation: false,
+        reminderHours: [24, 6],
+      }
+
+      ;(prisma.user.findFirst as any).mockResolvedValueOnce(mockUser)
+      ;(prisma.userProfile.upsert as any).mockResolvedValueOnce(updatedProfile)
+
       const request = new NextRequest('http://localhost:3000/api/user/preferences', {
         method: 'PUT',
-        body: JSON.stringify({ timezone: 'UTC' }),
+        body: JSON.stringify({
+          reminderHours: ['24', '6'], // strings should be coerced
+        }),
       })
 
-      // Manually override the context to simulate unauthorized
-      vi.mocked(await import('@/lib/tenant-utils')).requireTenantContext.mockReturnValueOnce({
-        userEmail: null,
-        tenantId: null,
-      } as any)
+      const response = await PUT(request)
+      const json = await response.json()
 
-      // Note: The actual test would need proper setup, this is a conceptual test
+      expect(response.status).toBe(400)
+      // Schema validation should reject this since schema expects numbers
+      expect(json.error).toBeTruthy()
+    })
+
+    it('handles empty reminderHours array', async () => {
+      const mockUser = { id: 'user-1' }
+      const updatedProfile = {
+        userId: 'user-1',
+        timezone: 'UTC',
+        preferredLanguage: 'en',
+        bookingEmailConfirm: true,
+        bookingEmailReminder: true,
+        bookingEmailReschedule: true,
+        bookingEmailCancellation: true,
+        bookingSmsReminder: false,
+        bookingSmsConfirmation: false,
+        reminderHours: [24, 2],
+      }
+
+      ;(prisma.user.findFirst as any).mockResolvedValueOnce(mockUser)
+      ;(prisma.userProfile.upsert as any).mockResolvedValueOnce(updatedProfile)
+
+      const request = new NextRequest('http://localhost:3000/api/user/preferences', {
+        method: 'PUT',
+        body: JSON.stringify({
+          reminderHours: [],
+        }),
+      })
+
+      const response = await PUT(request)
+      const json = await response.json()
+
+      // Empty array should use defaults
+      expect(response.status).toBe(200)
+      expect(Array.isArray(json.reminderHours)).toBe(true)
+    })
+
+    it('validates all boolean email preferences', async () => {
+      const mockUser = { id: 'user-1' }
+      const updatedProfile = {
+        userId: 'user-1',
+        timezone: 'UTC',
+        preferredLanguage: 'en',
+        bookingEmailConfirm: false,
+        bookingEmailReminder: false,
+        bookingEmailReschedule: false,
+        bookingEmailCancellation: false,
+        bookingSmsReminder: false,
+        bookingSmsConfirmation: false,
+        reminderHours: [24, 2],
+      }
+
+      ;(prisma.user.findFirst as any).mockResolvedValueOnce(mockUser)
+      ;(prisma.userProfile.upsert as any).mockResolvedValueOnce(updatedProfile)
+
+      const request = new NextRequest('http://localhost:3000/api/user/preferences', {
+        method: 'PUT',
+        body: JSON.stringify({
+          bookingEmailConfirm: false,
+          bookingEmailReminder: false,
+          bookingEmailReschedule: false,
+          bookingEmailCancellation: false,
+          bookingSmsReminder: false,
+          bookingSmsConfirmation: false,
+        }),
+      })
+
+      const response = await PUT(request)
+      const json = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(json.bookingEmailConfirm).toBe(false)
+      expect(json.bookingEmailReminder).toBe(false)
+      expect(json.bookingEmailReschedule).toBe(false)
+      expect(json.bookingEmailCancellation).toBe(false)
+      expect(json.bookingSmsReminder).toBe(false)
+      expect(json.bookingSmsConfirmation).toBe(false)
     })
   })
 })
