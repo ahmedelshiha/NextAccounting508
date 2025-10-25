@@ -305,6 +305,17 @@ export const LanguagesTab: React.FC = () => {
           </table>
         </div>
       </div>
+
+      <LanguageEditModal
+        language={editingLanguage}
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false)
+          setEditingLanguage(null)
+        }}
+        onSave={saveLanguage}
+        saving={saving}
+      />
     </div>
   )
 }
