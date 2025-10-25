@@ -68,49 +68,31 @@ export const IntegrationTab: React.FC = () => {
 
   async function loadCrowdinIntegration() {
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/crowdin-integration', { signal: controller.signal })
-      clearTimeout(timeoutId)
-
-      if (r.ok) {
-        const d = await r.json()
-        if (d.data) {
-          setCrowdinIntegration({
-            projectId: d.data.projectId || '',
-            apiToken: d.data.apiTokenMasked || '',
-            autoSyncDaily: d.data.autoSyncDaily ?? true,
-            syncOnDeploy: d.data.syncOnDeploy ?? false,
-            createPrs: d.data.createPrs ?? true,
-          })
-        }
+      const d = await cachedFetch<{ data: any }>('/api/admin/crowdin-integration', {
+        ttlMs: 5 * 60 * 1000, // 5 minute cache
+      })
+      if (d.data) {
+        setCrowdinIntegration({
+          projectId: d.data.projectId || '',
+          apiToken: d.data.apiTokenMasked || '',
+          autoSyncDaily: d.data.autoSyncDaily ?? true,
+          syncOnDeploy: d.data.syncOnDeploy ?? false,
+          createPrs: d.data.createPrs ?? true,
+        })
       }
     } catch (e) {
       console.error('Failed to load Crowdin integration:', e)
-      if ((e as any).name === 'AbortError') {
-        console.error('Request timed out')
-      }
     }
   }
 
   async function loadProjectHealth() {
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/crowdin-integration/project-health', { signal: controller.signal })
-      clearTimeout(timeoutId)
-
-      if (r.ok) {
-        const d = await r.json()
-        setProjectHealth(d.data || [])
-      }
+      const d = await cachedFetch<{ data: ProjectHealth[] }>('/api/admin/crowdin-integration/project-health', {
+        ttlMs: 5 * 60 * 1000, // 5 minute cache
+      })
+      setProjectHealth(d.data || [])
     } catch (e) {
       console.error('Failed to load project health:', e)
-      if ((e as any).name === 'AbortError') {
-        console.error('Request timed out')
-      }
     }
   }
 
