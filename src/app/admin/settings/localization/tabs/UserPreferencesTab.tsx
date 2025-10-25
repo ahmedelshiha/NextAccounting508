@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useLocalizationContext } from '../LocalizationProvider'
 import { BarChart3 } from 'lucide-react'
+import { BulkUserLanguageAssignPanel } from '../components/BulkUserLanguageAssignPanel'
 
 interface AnalyticsDistribution {
   language: string
