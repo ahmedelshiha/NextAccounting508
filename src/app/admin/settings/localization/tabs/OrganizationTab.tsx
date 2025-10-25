@@ -6,7 +6,7 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { SelectField, Toggle } from '@/components/admin/settings/FormField'
 import { toast } from 'sonner'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle } from 'lucide-react'
 
 export const OrganizationTab: React.FC = () => {
   const {
