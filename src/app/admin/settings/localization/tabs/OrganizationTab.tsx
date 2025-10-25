@@ -125,28 +125,44 @@ export const OrganizationTab: React.FC = () => {
             <p className="text-sm text-gray-600 mb-4">Configure organization-wide language defaults</p>
             <div className="space-y-4">
               <div>
-                <SelectField
-                  label="Default Language"
-                  value={orgSettings.defaultLanguage}
-                  onChange={v => setOrgSettings(s => ({ ...s, defaultLanguage: v }))}
-                  options={languages.filter(l => l.enabled).map(l => ({
-                    value: l.code,
-                    label: `${l.name} (${l.nativeName})`,
-                  }))}
-                />
-                <p className="text-xs text-gray-600 mt-1">Language shown to new users and guests</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <SelectField
+                    label="Default Language"
+                    value={orgSettings.defaultLanguage}
+                    onChange={v => setOrgSettings(s => ({ ...s, defaultLanguage: v }))}
+                    options={languages.map(l => ({
+                      value: l.code,
+                      label: `${l.flag} ${l.name} (${l.nativeName})${!l.enabled ? ' [Disabled]' : ''}`,
+                    }))}
+                  />
+                  {isDefaultLanguageDisabled && (
+                    <AlertCircle className="h-5 w-5 text-red-600" title="This language is disabled" />
+                  )}
+                </div>
+                <p className="text-xs text-gray-600">Language shown to new users and guests</p>
+                {isDefaultLanguageDisabled && (
+                  <p className="text-xs text-red-600 mt-1">⚠️ The selected default language is currently disabled</p>
+                )}
               </div>
               <div>
-                <SelectField
-                  label="Fallback Language"
-                  value={orgSettings.fallbackLanguage}
-                  onChange={v => setOrgSettings(s => ({ ...s, fallbackLanguage: v }))}
-                  options={languages.filter(l => l.enabled).map(l => ({
-                    value: l.code,
-                    label: `${l.name} (${l.nativeName})`,
-                  }))}
-                />
-                <p className="text-xs text-gray-600 mt-1">Language used when translation is missing</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <SelectField
+                    label="Fallback Language"
+                    value={orgSettings.fallbackLanguage}
+                    onChange={v => setOrgSettings(s => ({ ...s, fallbackLanguage: v }))}
+                    options={languages.map(l => ({
+                      value: l.code,
+                      label: `${l.flag} ${l.name} (${l.nativeName})${!l.enabled ? ' [Disabled]' : ''}`,
+                    }))}
+                  />
+                  {isFallbackLanguageDisabled && (
+                    <AlertCircle className="h-5 w-5 text-red-600" title="This language is disabled" />
+                  )}
+                </div>
+                <p className="text-xs text-gray-600">Language used when translation is missing</p>
+                {isFallbackLanguageDisabled && (
+                  <p className="text-xs text-red-600 mt-1">⚠️ The selected fallback language is currently disabled</p>
+                )}
               </div>
             </div>
           </div>
