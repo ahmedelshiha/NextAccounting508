@@ -43,6 +43,7 @@ interface CachedFetchOptions extends RequestInit {
  * })
  */
 export function useCache() {
+  const { fetchWithTimeout } = useFetchWithTimeout()
   /**
    * Make a cached fetch request
    */
