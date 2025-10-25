@@ -172,9 +172,12 @@ export const OrganizationTab: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">User Language Control</h3>
             <p className="text-sm text-gray-600 mb-4">Control how users interact with language settings</p>
             <div className="space-y-4">
-              <label className="flex items-start justify-between gap-4 p-4 border rounded-lg hover:bg-gray-50">
+              <label className="flex items-start justify-between gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
                 <div>
-                  <p className="font-medium text-gray-900">Show Language Switcher</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-gray-900">Show Language Switcher</p>
+                    {orgSettings.showLanguageSwitcher && <CheckCircle className="h-4 w-4 text-green-600" />}
+                  </div>
                   <p className="text-sm text-gray-600">Display language selector in UI</p>
                 </div>
                 <Toggle
@@ -184,9 +187,12 @@ export const OrganizationTab: React.FC = () => {
                 />
               </label>
 
-              <label className="flex items-start justify-between gap-4 p-4 border rounded-lg hover:bg-gray-50">
+              <label className="flex items-start justify-between gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
                 <div>
-                  <p className="font-medium text-gray-900">Persist Language Preference</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-gray-900">Persist Language Preference</p>
+                    {orgSettings.persistLanguagePreference && <CheckCircle className="h-4 w-4 text-green-600" />}
+                  </div>
                   <p className="text-sm text-gray-600">Save user&apos;s language choice to database</p>
                 </div>
                 <Toggle
@@ -196,9 +202,12 @@ export const OrganizationTab: React.FC = () => {
                 />
               </label>
 
-              <label className="flex items-start justify-between gap-4 p-4 border rounded-lg hover:bg-gray-50">
+              <label className="flex items-start justify-between gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
                 <div>
-                  <p className="font-medium text-gray-900">Auto-Detect Browser Language</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-gray-900">Auto-Detect Browser Language</p>
+                    {orgSettings.autoDetectBrowserLanguage && <CheckCircle className="h-4 w-4 text-green-600" />}
+                  </div>
                   <p className="text-sm text-gray-600">Use browser language on first visit</p>
                 </div>
                 <Toggle
@@ -208,9 +217,12 @@ export const OrganizationTab: React.FC = () => {
                 />
               </label>
 
-              <label className="flex items-start justify-between gap-4 p-4 border rounded-lg hover:bg-gray-50">
+              <label className="flex items-start justify-between gap-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
                 <div>
-                  <p className="font-medium text-gray-900">Allow Users to Override</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-gray-900">Allow Users to Override</p>
+                    {orgSettings.allowUserLanguageOverride && <CheckCircle className="h-4 w-4 text-green-600" />}
+                  </div>
                   <p className="text-sm text-gray-600">Let users change their language preference</p>
                 </div>
                 <Toggle
