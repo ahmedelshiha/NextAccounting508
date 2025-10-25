@@ -166,6 +166,16 @@ export const RegionalFormatsTab: React.FC = () => {
     return <div className="text-gray-600 py-8 text-center">No enabled languages available</div>
   }
 
+  const format = formats[selectedLanguage] || {
+    dateFormat: '',
+    timeFormat: '',
+    currencyCode: '',
+    currencySymbol: '',
+    numberFormat: '',
+    decimalSeparator: '.',
+    thousandsSeparator: ',',
+  }
+
   return (
     <div className="space-y-6">
       <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
