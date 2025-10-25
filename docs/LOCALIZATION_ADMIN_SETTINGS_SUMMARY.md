@@ -52,7 +52,7 @@ This file provides the high-level implementation roadmap. For detailed informati
 | **UX Verification** | ✨ NEW - Confirms selection-based UX improvements for admin users | `docs/admin/settings/localization/UX_IMPROVEMENT_VERIFICATION.md` | ✅ Complete |
 | **This File** | Implementation phases, timeline, task breakdown | `docs/LOCALIZATION_ADMIN_SETTINGS_SUMMARY.md` | 🔄 Updating |
 | **Admin Runbooks** | Step-by-step how-to guides for admins | `docs/LOCALIZATION_ADMIN_RUNBOOKS.md` | ✅ Complete |
-| **API Reference** | Complete REST API documentation | `docs/LOCALIZATION_API_REFERENCE.md` | ✅ Complete |
+| **API Reference** | Complete REST API documentation | `docs/LOCALIZATION_API_REFERENCE.md` | ��� Complete |
 | **Deployment Guide** | Production deployment strategy, rollback plans | `docs/LOCALIZATION_DEPLOYMENT_GUIDE.md` | ✅ Complete |
 | **Accessibility Audit** | WCAG 2.1 AA compliance details | `docs/LOCALIZATION_ACCESSIBILITY_AUDIT.md` | ✅ Complete |
 
@@ -617,19 +617,113 @@ This file provides the high-level implementation roadmap. For detailed informati
 
 ### 5.2 Language Activity Heatmap
 
-**Tasks:**
-- Show language usage over time
-- Display peak usage times
-- Regional breakdown
-- Device/OS breakdown
+Goal: Deliver a first-class heatmap view for language activity with time ranges, filters, and accessible visuals.
+
+Current state verification:
+- API exists: GET /api/admin/language-activity-analytics (hourly aggregation, days param, permissions: ANALYTICS_VIEW)
+- UI exists: components/LanguageActivityHeatmap.tsx and tabs/HeatmapTab.tsx (not yet wired in nav)
+- Gaps: heatmap tab not in TABS/types; missing filters (region/device); no tests; no caching; accessibility review pending
+
+Scope (MVP):
+- Time ranges: 7d, 14d, 30d (already present)
+- Aggregation: hourly buckets (already present)
+- Filters: language (multi-select), region (timezone/country), device/OS (basic UA buckets)
+- UX: keyboard and screen-reader friendly, legend, tooltips, summary cards
+
+Tasks:
+1) Navigation integration
+- Add new tab entry and type
+  - src/app/admin/settings/localization/constants.ts: add { key: 'heatmap', label: 'Activity Heatmap' }
+  - src/app/admin/settings/localization/types.ts: extend TabKey union to include 'heatmap'
+  - Ensure LocalizationContent.new.tsx TAB_COMPONENTS contains heatmap (already present)
+
+2) API enhancements (non-breaking)
+- Extend /api/admin/language-activity-analytics to accept optional filters: languages[], region, device
+- Add basic UA bucketing on server (desktop/mobile/tablet + major OS families)
+- Add region bucketing using user profile/timezone if available; otherwise default to unknown
+- Maintain existing response shape and include filters in payload meta for debugging
+
+3) Client features
+- Language multi-select filter (chips) above heatmap with “All” toggle
+- Device and Region dropdowns; persist selection in querystring (?tab=heatmap&device=all&region=all)
+- Tooltips (title attribute already used) remain for a11y; add sr-only labels for counts
+- Add CSV export button: downloads visible grid as hourly rows for selected filters
+
+4) Performance
+- Use localization/hooks/useCache cachedFetch for the analytics request
+- Debounce filter changes (300ms) with utils/performance.debounce
+- Keep DOM light: virtualize columns when > 72 buckets (future-safe)
+
+5) Testing
+- Unit: render with data; filter behavior; time range switching; CSV export format
+  - src/app/admin/settings/localization/__tests__/HeatmapTab.test.tsx (new)
+- API: query param parsing, permission gating, filter application
+  - src/app/api/admin/language-activity-analytics/route.ts tests (co-located in existing API tests)
+
+6) Accessibility & UX
+- Ensure buttons have aria-pressed for selected range; cells have aria-label with language, timestamp, count
+- Keep existing blue color ramp; provide text alternative via counts and legend
+
+Files to modify/create:
+- Modify: src/app/admin/settings/localization/constants.ts, types.ts, LocalizationContent.new.tsx (verify mapping), components/LanguageActivityHeatmap.tsx (filters + a11y), tabs/HeatmapTab.tsx (filter panel + export)
+- Add: src/app/admin/settings/localization/__tests__/HeatmapTab.test.tsx
+- Update: src/app/api/admin/language-activity-analytics/route.ts (filters)
+
+Validation criteria:
+- Heatmap tab visible and navigable, deep-link works (?tab=heatmap)
+- Filters update results without full page reload; cached between switches
+- API respects permissions and returns filtered results
+- Keyboard navigation works across filter controls and grid
+
+Effort: 4-5h | Priority: HIGH (analytics value) | Dependencies: none
 
 ### 5.3 Translation Priority System
 
-**Tasks:**
-- Mark translation keys as priority
-- Fast-track translation workflow
-- Notification system for translators
-- Deadline tracking
+Goal: Allow admins to mark translation keys as priority with severity, assignee, and due dates; power faster workflows and reporting.
+
+Data model (Prisma):
+- New model TranslationPriority
+  - id (cuid), tenantId (FK Tenant), key (string, indexed), languageCode (string, optional for per-language priority),
+    priority ('low'|'medium'|'high'|'urgent'), status ('open'|'in_progress'|'blocked'|'done'),
+    dueDate (DateTime?), assignedToUserId (String?), notes (Text?), createdAt, updatedAt
+  - Unique compound: tenantId + key + languageCode? (nullable languageCode handled by Prisma unique index + @@index)
+
+API endpoints:
+- POST /api/admin/translations/priority           // create or upsert a priority record
+- PUT  /api/admin/translations/priority/:id       // update priority, status, assignee, dueDate, notes
+- GET  /api/admin/translations/priority           // list with filters (status, priority, language, search by key)
+- DELETE /api/admin/translations/priority/:id     // remove priority flag
+- POST /api/admin/translations/priority/bulk      // bulk upsert from selection
+- Permissions: LANGUAGES_MANAGE for mutations; ANALYTICS_VIEW for read
+
+UI/UX (TranslationsTab additions):
+- “Set Priority” action on missing keys and key listings; modal to choose severity, language(s), due date, assignee
+- Priority list panel: sortable by severity/due date; quick filters and search
+- Badges in key lists: urgent/high indicators; due date chip if set
+- Bulk actions: set priority, change status, assign translator, set due date
+
+Notifications & automations:
+- On urgent or dueDate nearing (48h), emit app event to notifications system (existing toast/email infra if available)
+- Optional Zapier webhook for external workflow tools (plan only; gated by configuration)
+
+Testing:
+- API unit tests: validation, permission gating, CRUD, bulk operations, filters
+- UI tests: create/edit/delete priority; badges render; sorting/filtering works; bulk ops
+- E2E: happy path priority assignment from Translations tab and appearing in list
+
+Files to create/modify:
+- Prisma: prisma/migrations/<timestamp>_translation_priority/ (model + README.txt)
+- API: src/app/api/admin/translations/priority/(index, [id], bulk)/route.ts
+- UI: src/app/admin/settings/localization/tabs/TranslationsTab.tsx (priority modal, list panel, badges)
+- Hooks: src/app/admin/settings/localization/hooks/useTranslationPriority.ts (fetch, mutate, cache invalidate)
+- Tests: src/app/admin/settings/localization/__tests__/TranslationsPriority.test.tsx; API tests
+
+Validation criteria:
+- Admin can set priority for a key (global or per-language) and see it reflected immediately
+- Filters: by priority, status, language, assignee; search by key substring
+- Permissions enforced; audit logs written for mutations
+
+Effort: 6-8h | Priority: HIGH | Dependencies: migration + basic notifications (optional)
 
 ---
 
@@ -1150,7 +1244,7 @@ src/app/admin/settings/localization/
 ```
 ┌─────────────────────────────���───────┐
 │ Languages & Availability            │
-├─────���───────────────────────────────┤
+├─────������──────────────────────────────┤
 │ [Add Language] [Import] [Export]    │
 ├───────���─────────────────────────────┤
 │ Code │ Name      │ Status│ Featured│
@@ -1197,7 +1291,7 @@ Heatmap: [Language usage over last 30 days]
 │ Default Language: [English ▼]         │
 │ Fallback Language: [English ▼]        │
 │                                      │
-│ ☑ Show language switcher to clients  │
+│ �� Show language switcher to clients  │
 │ ��� Auto-detect browser language       │
 │ ☑ Persist user language preference   │
 │ ☑ Auto-apply RTL for RTL languages   │
@@ -1644,7 +1738,7 @@ Heatmap: [Language usage over last 30 days]
 ### Implementation Ready Checklist
 
 **PHASE 0 (Deploy Now):**
-- [x] ✅ All 8 tabs fully functional
+- [x] ��� All 8 tabs fully functional
 - [x] ✅ 30+ API endpoints implemented
 - [x] ✅ Permission gating in place
 - [x] ✅ Error handling complete

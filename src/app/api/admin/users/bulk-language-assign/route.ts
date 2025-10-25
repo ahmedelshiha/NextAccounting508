@@ -1,7 +1,7 @@
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { logAudit } from '@/lib/audit-logger'
+import { logAudit } from '@/lib/audit'
 import prisma from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -18,7 +18,7 @@ export interface BulkLanguageAssignResponse {
   errors: string[]
 }
 
-export const POST = withTenantContext(async (request: Request) => {
+export const POST = async (request: Request) => {
   try {
     const ctx = requireTenantContext()
     
@@ -77,14 +77,14 @@ export const POST = withTenantContext(async (request: Request) => {
         })
 
         await logAudit({
-          userId: ctx.userId,
           action: 'user_language_assignment_bulk',
-          resourceType: 'user',
-          resourceId: userId,
-          changes: {
+          actorId: ctx.userId,
+          targetId: userId,
+          details: {
+            resourceType: 'user',
             targetLanguage,
+            tenantId,
           },
-          tenantId,
         })
 
         updated++
@@ -109,4 +109,4 @@ export const POST = withTenantContext(async (request: Request) => {
       { status: 500 }
     )
   }
-})
+}

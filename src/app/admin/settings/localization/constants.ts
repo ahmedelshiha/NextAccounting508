@@ -156,6 +156,7 @@ export const TABS: TabDefinition[] = [
   { key: 'translations', label: 'Translation Dashboard' },
   { key: 'analytics', label: 'Analytics' },
   { key: 'discovery', label: 'Key Discovery' },
+  { key: 'heatmap', label: 'Activity Heatmap' },
 ]
 
 export const DEFAULT_ORG_SETTINGS: OrganizationLocalizationSettings = {
