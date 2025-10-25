@@ -262,6 +262,39 @@ export const IntegrationTab: React.FC = () => {
     }
   }
 
+  function copyWebhookUrl() {
+    if (webhookConfig?.webhookUrl) {
+      navigator.clipboard.writeText(webhookConfig.webhookUrl)
+      setCopiedWebhookUrl(true)
+      toast.success('Webhook URL copied to clipboard')
+      setTimeout(() => setCopiedWebhookUrl(false), 2000)
+    }
+  }
+
+  async function testWebhookDelivery() {
+    setCrowdinTestLoading(true)
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      const r = await fetch('/api/admin/crowdin-integration/webhook/test', {
+        method: 'POST',
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+      const d = await r.json()
+      if (r.ok) {
+        toast.success('Test webhook delivery sent successfully')
+      } else {
+        toast.error(d?.error || 'Failed to test webhook delivery')
+      }
+    } catch (e: any) {
+      const message = e?.name === 'AbortError' ? 'Request timed out' : e?.message || 'Failed to test webhook delivery'
+      toast.error(message)
+    } finally {
+      setCrowdinTestLoading(false)
+    }
+  }
+
   if (loading) {
     return <div className="text-gray-600 py-8 text-center">Loading integration settings...</div>
   }
