@@ -156,28 +156,20 @@ export const IntegrationTab: React.FC = () => {
   }
 
   async function manualSync() {
-    try {
-      setCrowdinTestLoading(true)
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-
-      const r = await fetch('/api/admin/crowdin-integration/sync', {
-        method: 'POST',
-        signal: controller.signal,
-      })
-      clearTimeout(timeoutId)
-
-      const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to run sync')
-      invalidateCrowdinCaches() // Invalidate cache after mutation
+    setCrowdinTestLoading(true)
+    const res = await mutate(
+      '/api/admin/crowdin-integration/sync',
+      'POST',
+      undefined,
+      { invalidate: [/crowdin-integration/] }
+    )
+    if (res.ok) {
       toast.success('Sync started successfully')
       await Promise.all([loadCrowdinIntegration(), loadProjectHealth(), loadSyncLogs()])
-    } catch (e: any) {
-      const message = e?.name === 'AbortError' ? 'Request timed out' : e?.message || 'Failed to run sync'
-      toast.error(message)
-    } finally {
-      setCrowdinTestLoading(false)
+    } else {
+      toast.error(res.error || 'Failed to run sync')
     }
+    setCrowdinTestLoading(false)
   }
 
   async function loadWebhookConfig() {
