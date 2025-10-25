@@ -70,8 +70,9 @@ export const LanguagesTab: React.FC = () => {
     setError(null)
     const res = await mutate(`/api/admin/languages/${encodeURIComponent(code)}/toggle`, 'PATCH', undefined, { invalidate: ['api/admin/languages'] })
     if (!res.ok) {
-      setError(res.error)
-      toast.error(res.error)
+      const msg = res.error ?? 'Failed to toggle language'
+      setError(msg)
+      toast.error(msg)
       return
     }
     await loadLanguages()
@@ -83,8 +84,9 @@ export const LanguagesTab: React.FC = () => {
     setError(null)
     const res = await mutate(`/api/admin/languages/${encodeURIComponent(code)}`, 'DELETE', undefined, { invalidate: ['api/admin/languages'] })
     if (!res.ok) {
-      setError(res.error)
-      toast.error(res.error)
+      const msg = res.error ?? 'Failed to delete language'
+      setError(msg)
+      toast.error(msg)
       return
     }
     await loadLanguages()
