@@ -134,6 +134,65 @@ describe('LanguagesTab', () => {
     })
   })
 
+  test('allows selecting popular language from dropdown', async () => {
+    const user = userEvent.setup()
+
+    global.fetch = vi.fn()
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({}),
+        } as Response)
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: [] }),
+        } as Response)
+      )
+
+    render(
+      <LocalizationProvider>
+        <LanguagesTab />
+      </LocalizationProvider>
+    )
+
+    const addButton = await screen.findByText(/Add Language/i)
+    await user.click(addButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Quick Select Popular Language')).toBeInTheDocument()
+    })
+
+    const frenchButton = screen.getByText('Français')
+    await user.click(frenchButton)
+
+    await waitFor(() => {
+      const codeInput = screen.getByDisplayValue('fr') as HTMLInputElement
+      const nameInput = screen.getByDisplayValue('French') as HTMLInputElement
+      expect(codeInput).toBeInTheDocument()
+      expect(nameInput).toBeInTheDocument()
+    })
+
+    const submitButton = screen.getAllByRole('button', { name: /Add Language/i })[1]
+    await user.click(submitButton)
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/admin/languages',
+        expect.objectContaining({
+          method: 'POST',
+        })
+      )
+    })
+  })
+
   test('allows exporting languages', async () => {
     const user = userEvent.setup()
     const mockLanguages = [
